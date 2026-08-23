@@ -1,0 +1,22 @@
+CREATE SCHEMA IF NOT EXISTS account;
+
+CREATE TABLE IF NOT EXISTS account.users (
+    uuid UUID PRIMARY KEY,
+    name TEXT NOT NULL,
+    admin BOOLEAN NOT NULL DEFAULT FALSE,
+    dev BOOLEAN NOT NULL DEFAULT FALSE
+);
+
+CREATE SCHEMA IF NOT EXISTS auth;
+
+CREATE TABLE IF NOT EXISTS auth.logins (
+    uuid UUID PRIMARY KEY REFERENCES account.users (uuid) ON DELETE CASCADE,
+    pwdhash BYTEA NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS auth.sessions (
+    uuid UUID NOT NULL REFERENCES account.users (uuid) ON DELETE CASCADE,
+    cookietoken TEXT NOT NULL,
+    ttl TIMESTAMPTZ NOT NULL,
+    PRIMARY KEY (uuid, cookietoken)
+);
