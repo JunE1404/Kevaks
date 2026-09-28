@@ -3,10 +3,17 @@ package database
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
+)
+
+var (
+	ErrUserNotFound = errors.New("user not found")
+	ErrNameTaken    = errors.New("name already exists")
 )
 
 type DBHandler struct {
@@ -44,10 +51,10 @@ type Session struct {
 	TTL         time.Time
 }
 
-func Connect(connString string) *DBHandler {
+func Connect(connString string) (*DBHandler, error) {
 	config, err := pgxpool.ParseConfig(connString)
 	if err != nil {
-		return nil
+		return nil, fmt.Errorf("parse database url: %w", err)
 	}
 
 	config.MaxConns = 10
@@ -60,15 +67,15 @@ func Connect(connString string) *DBHandler {
 
 	pool, err := pgxpool.NewWithConfig(ctx, config)
 	if err != nil {
-		return nil
+		return nil, fmt.Errorf("create database pool: %w", err)
 	}
 
 	if err := pool.Ping(ctx); err != nil {
 		pool.Close()
-		return nil
+		return nil, fmt.Errorf("connect to database: %w", err)
 	}
 
-	return &DBHandler{Conn: pool}
+	return &DBHandler{Conn: pool}, nil
 }
 
 func (db *DBHandler) GetUser(ctx context.Context, uuid uuid.UUID) (*User, error) {
@@ -106,6 +113,9 @@ func (db *DBHandler) SetUser(ctx context.Context, u *User) error {
 			admin = EXCLUDED.admin,
 			dev = EXCLUDED.dev,
 			enabled = EXCLUDED.enabled`, u.UUID, u.Name, u.Admin, u.Dev, u.Enabled)
+	if isUniqueViolation(err) {
+		return ErrNameTaken
+	}
 	return err
 }
 
@@ -223,4 +233,44 @@ func (db *DBHandler) DeleteUserSessions(ctx context.Context, uuid uuid.UUID) err
 		DELETE FROM auth.sessions
 		WHERE uuid = $1`, uuid)
 	return err
+}
+
+func (db *DBHandler) RenameUser(ctx context.Context, uuid uuid.UUID, name string) error {
+	tx, err := db.Conn.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	var taken bool
+	if err := tx.QueryRow(ctx, `
+		SELECT EXISTS(
+			SELECT 1 FROM account.users WHERE name = $1 AND uuid <> $2
+		)`, name, uuid).Scan(&taken); err != nil {
+		return err
+	}
+	if taken {
+		return ErrNameTaken
+	}
+
+	tag, err := tx.Exec(ctx, `
+		UPDATE account.users
+		SET name = $2
+		WHERE uuid = $1`, uuid, name)
+	if err != nil {
+		if isUniqueViolation(err) {
+			return ErrNameTaken
+		}
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		return ErrUserNotFound
+	}
+
+	return tx.Commit(ctx)
+}
+
+func isUniqueViolation(err error) bool {
+	var pgErr *pgconn.PgError
+	return errors.As(err, &pgErr) && pgErr.Code == "23505"
 }

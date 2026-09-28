@@ -9,6 +9,7 @@ import { Admin } from "./pages/Admin";
 import { Home } from "./pages/Home";
 import { Landing } from "./pages/Landing";
 import { Login } from "./pages/Login";
+import { Profile } from "./pages/Profile";
 import { ResetPassword } from "./pages/ResetPassword";
 
 const router = createBrowserRouter([
@@ -22,6 +23,7 @@ const router = createBrowserRouter([
         element: <ProtectedRoute />,
         children: [
           { path: "home", element: <Home /> },
+          { path: "profile", element: <Profile /> },
           { path: "reset-password", element: <ResetPassword /> },
           {
             element: <ProtectedAdminRoute />,

@@ -26,7 +26,7 @@ export function Login() {
   }
 
   return (
-    <div className="PageContainer">
+    <div className="PageContainer LoginPage">
       <form className="LoginForm" onSubmit={handleSubmit}>
         <h1>{localization.login.l_title}</h1>
 

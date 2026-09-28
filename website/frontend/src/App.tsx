@@ -1,5 +1,6 @@
 import { Link, Outlet, useLocation } from "react-router-dom";
 import "./App.css";
+import { Header } from "./components/Header";
 import { AuthProvider } from "./contexts/Auth";
 import { LangProvider } from "./contexts/Language";
 import { useAuth } from "./contexts/authContext";
@@ -11,9 +12,11 @@ function AppShell() {
   const location = useLocation();
 
   const showTempBanner = userData.temp && location.pathname !== "/reset-password";
+  const hideHeader = /^\/game(\/|$)/.test(location.pathname);
 
   return (
     <>
+      {!hideHeader && <Header />}
       {showTempBanner && (
         <div className="TempBanner">
           <span>{localization.password.l_temp_banner}</span>

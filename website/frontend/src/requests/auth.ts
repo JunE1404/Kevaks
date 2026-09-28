@@ -1,3 +1,5 @@
+import { readErrorCode } from "./errors";
+
 export interface AuthUser {
   uuid: string;
   name: string;
@@ -50,4 +52,20 @@ export async function resetPassword(password: string): Promise<boolean> {
     body: JSON.stringify({ password }),
   });
   return res.ok;
+}
+
+export type NameChangeError = "e20" | "e21" | "unknown";
+
+export async function changeName(name: string): Promise<NameChangeError | null> {
+  const res = await fetch(`${API_BASE}/profile/name`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ name }),
+  });
+
+  if (res.ok) {
+    return null;
+  }
+  return readErrorCode(res);
 }

@@ -1,3 +1,5 @@
+import { readErrorCode, type ErrorCode } from "./errors";
+
 export interface AdminUser {
   uuid: string;
   name: string;
@@ -28,11 +30,15 @@ export async function listUsers(): Promise<AdminUser[]> {
   return res.json() as Promise<AdminUser[]>;
 }
 
+export type CreateAccountResult =
+  | { ok: true; account: AccountResult }
+  | { ok: false; code: ErrorCode };
+
 export async function createAccount(
   name: string,
   admin: boolean,
   dev: boolean,
-): Promise<AccountResult> {
+): Promise<CreateAccountResult> {
   const res = await fetch(`${API_BASE}/admin/accounts`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -41,9 +47,9 @@ export async function createAccount(
   });
 
   if (!res.ok) {
-    throw new Error("Failed to create account");
+    return { ok: false, code: await readErrorCode(res) };
   }
-  return res.json() as Promise<AccountResult>;
+  return { ok: true, account: (await res.json()) as AccountResult };
 }
 
 export async function setAccountEnabled(uuid: string, enabled: boolean): Promise<void> {

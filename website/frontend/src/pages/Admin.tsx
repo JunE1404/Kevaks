@@ -3,6 +3,8 @@ import type { SubmitEvent } from "react";
 import { Link } from "react-router-dom";
 import { CopyButton } from "../components/CopyButton";
 import { useLanguage } from "../contexts/languageContext";
+import { isValidName } from "../misc/helpers";
+import type { ErrorCode } from "../requests/errors";
 import {
   createAccount,
   listUsers,
@@ -35,6 +37,7 @@ export function Admin() {
   const [statusUuid, setStatusUuid] = useState("");
   const [statusAction, setStatusAction] = useState<StatusAction>("enable");
   const [resetUuid, setResetUuid] = useState("");
+  const [hideDisabled, setHideDisabled] = useState(false);
 
   async function refreshUsers() {
     try {
@@ -70,17 +73,32 @@ export function Admin() {
     setResult(null);
   }
 
+  const nameErrorMessages: Record<ErrorCode, string> = {
+    e20: localization.errors.e20,
+    e21: localization.errors.e21,
+    unknown: localization.errors.generic,
+  };
+
   async function handleAdd(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
-    setBusy(true);
     setResult(null);
 
+    if (!isValidName(name)) {
+      setResult({ success: false, message: localization.errors.e20 });
+      return;
+    }
+
+    setBusy(true);
     try {
-      const created = await createAccount(name, isAdmin, isDev);
+      const outcome = await createAccount(name, isAdmin, isDev);
+      if (!outcome.ok) {
+        setResult({ success: false, message: nameErrorMessages[outcome.code] });
+        return;
+      }
       setResult({
         success: true,
         message: localization.admin.l_success_add,
-        temporaryPassword: created.temporary_password,
+        temporaryPassword: outcome.account.temporary_password,
       });
       setName("");
       setIsAdmin(false);
@@ -136,6 +154,8 @@ export function Admin() {
       setBusy(false);
     }
   }
+
+  const visibleUsers = hideDisabled ? users.filter((user) => user.enabled) : users;
 
   return (
     <div className="PageContainer AdminPage">
@@ -249,7 +269,16 @@ export function Admin() {
       {loading ? (
         <p className="Subtitle">{localization.admin.l_loading}</p>
       ) : (
-        <table className="AdminTable">
+        <>
+          <label className="AdminCheck AdminToggle">
+            <input
+              type="checkbox"
+              checked={hideDisabled}
+              onChange={(event) => setHideDisabled(event.target.checked)}
+            />
+            {localization.admin.l_hide_disabled}
+          </label>
+          <table className="AdminTable">
           <thead>
             <tr>
               <th>{localization.admin.l_col_name}</th>
@@ -261,7 +290,7 @@ export function Admin() {
             </tr>
           </thead>
           <tbody>
-            {users.map((user) => (
+            {visibleUsers.map((user) => (
               <tr key={user.uuid}>
                 <td>{user.name}</td>
                 <td>{user.role}</td>
@@ -280,7 +309,8 @@ export function Admin() {
               </tr>
             ))}
           </tbody>
-        </table>
+          </table>
+        </>
       )}
     </div>
   );

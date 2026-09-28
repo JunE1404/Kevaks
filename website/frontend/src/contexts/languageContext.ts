@@ -46,6 +46,7 @@ export interface Localization {
     b_copy: string;
     b_copied: string;
     b_copy_uuid: string;
+    l_hide_disabled: string;
   };
   landing: {
     l_title: string;
@@ -54,6 +55,8 @@ export interface Localization {
   };
   errors: {
     generic: string;
+    e20: string;
+    e21: string;
   };
   password: {
     l_title: string;
@@ -66,6 +69,13 @@ export interface Localization {
     e_special: string;
     e_characters: string;
     e_mismatch: string;
+  };
+  profile: {
+    l_title: string;
+    l_name: string;
+    b_edit: string;
+    b_cancel: string;
+    b_submit: string;
   };
 }
 

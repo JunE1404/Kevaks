@@ -1,16 +1,40 @@
 .PageContainer {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
+  justify-content: flex-start;
+  align-items: flex-start;
+  width: 85%;
   flex: 1;
+  margin: var(--header-height) auto 0;
   background: var(--bg);
   color: var(--text);
 }
 
 .Subtitle {
   color: var(--text-second);
+}
+
+.Header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  gap: 1rem;
+  min-height: var(--header-height);
+  padding: 0.65rem 1.5rem;
+  background: var(--bg-second);
+  color: var(--text);
+}
+
+.HeaderBrand {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.HeaderNav {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .TempBanner {
@@ -78,24 +102,55 @@ button:disabled {
   cursor: default;
 }
 
+.LoginPage {
+  justify-content: center;
+}
+
 .LoginForm {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  width: min(20rem, 90vw);
+  box-sizing: border-box;
+  width: min(20rem, 100%);
   padding: 2rem;
   background: var(--bg);
 }
 
 .LoginForm h1 {
   margin: 0 0 0.5rem;
-  text-align: center;
 }
 
 .FormError {
   margin: 0;
   color: var(--accent);
   font-size: 0.9rem;
+}
+
+.ProfilePage {
+  gap: 1rem;
+}
+
+.ProfileLine {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.ProfileLine input {
+  width: min(20rem, 100%);
+}
+
+.ProfileLabel {
+  color: var(--text-second);
+}
+
+.ProfileName {
+  font-weight: 600;
+}
+
+.ProfileActions {
+  display: flex;
+  gap: 0.75rem;
 }
 
 select {
@@ -124,9 +179,7 @@ code {
 }
 
 .AdminPage {
-  justify-content: flex-start;
   gap: 0.75rem;
-  padding: 2rem;
 }
 
 .AdminModes {
@@ -151,6 +204,10 @@ code {
   gap: 0.35rem;
 }
 
+.AdminToggle {
+  margin-top: 1rem;
+}
+
 .AdminResult {
   display: flex;
   align-items: center;
@@ -172,6 +229,7 @@ code {
 }
 
 .AdminTable {
+  width: 100%;
   margin-top: 1rem;
   border-collapse: collapse;
   color: var(--text);
@@ -190,4 +248,8 @@ code {
 
 .AdminTable tbody tr:nth-child(even) {
   background: var(--bg-second);
+}
+
+.AdminTable tbody tr:nth-child(even) button {
+  background: var(--bg);
 }

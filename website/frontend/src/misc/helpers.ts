@@ -1,5 +1,9 @@
 export const SPECIAL_CHARS = "!\"#$%&'()*+-/:<=>?@[\\]^_`{|}~";
 
+export function isValidName(name: string): boolean {
+  return /^[a-zA-Z0-9]+$/.test(name);
+}
+
 export type PasswordError = "length" | "special" | "characters";
 
 export function validatePassword(password: string): PasswordError | null {

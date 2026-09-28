@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"errors"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
@@ -17,8 +18,8 @@ func CreateAccountHandler(db *database.DBHandler) fiber.Handler {
 			Admin bool   `json:"admin"`
 			Dev   bool   `json:"dev"`
 		}
-		if err := c.Bind().Body(&body); err != nil || body.Name == "" {
-			return badRequest(c, "name is required")
+		if err := c.Bind().Body(&body); err != nil || auth.ValidateName(body.Name) != nil {
+			return errorCode(c, fiber.StatusBadRequest, "e20")
 		}
 
 		tempPassword, err := auth.GenerateTempPassword()
@@ -36,7 +37,10 @@ func CreateAccountHandler(db *database.DBHandler) fiber.Handler {
 			Dev:     body.Dev,
 			Enabled: true,
 		}); err != nil {
-			return badRequest(c, "could not create account")
+			if errors.Is(err, database.ErrNameTaken) {
+				return errorCode(c, fiber.StatusConflict, "e21")
+			}
+			return serverError(c)
 		}
 
 		if err := db.SetLogin(ctx, &database.Login{

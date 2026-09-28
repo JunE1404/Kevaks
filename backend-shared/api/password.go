@@ -31,10 +31,10 @@ func ResetPasswordHandler(db *database.DBHandler) fiber.Handler {
 			Password string `json:"password"`
 		}
 		if err := c.Bind().Body(&body); err != nil {
-			return badRequest(c, "Bad Request")
+			return c.SendStatus(fiber.StatusBadRequest)
 		}
 		if err := auth.ValidatePassword(body.Password); err != nil {
-			return badRequest(c, err.Error())
+			return c.SendStatus(fiber.StatusBadRequest)
 		}
 
 		if err := db.SetLogin(ctx, &database.Login{

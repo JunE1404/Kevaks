@@ -33,9 +33,9 @@ func main() {
 		os.Exit(2)
 	}
 
-	db := database.Connect(os.Getenv("DATABASE_URL"))
-	if db == nil {
-		log.Fatal("could not connect to database")
+	db, err := database.Connect(os.Getenv("DATABASE_URL"))
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	ctx := context.Background()

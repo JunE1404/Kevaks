@@ -43,7 +43,8 @@
       "l_tmp_password": "Temporary password",
       "b_copy": "Copy",
       "b_copied": "Copied",
-      "b_copy_uuid": "Copy UUID"
+      "b_copy_uuid": "Copy UUID",
+      "l_hide_disabled": "Hide disabled accounts"
     },
     "landing": {
       "l_title": "Kevaks",
@@ -51,7 +52,9 @@
       "b_login": "Login"
     },
     "errors": {
-      "generic": "Something went wrong. Please try again."
+      "generic": "Something went wrong. Please try again.",
+      "e20": "Name may only contain letters and numbers.",
+      "e21": "That name is already taken."
     },
     "password": {
       "l_title": "Set new password",
@@ -64,6 +67,13 @@
       "e_special": "Password must contain at least one special character.",
       "e_characters": "Password contains characters that are not allowed.",
       "e_mismatch": "Passwords do not match."
+    },
+    "profile": {
+      "l_title": "Profile",
+      "l_name": "Username",
+      "b_edit": "Edit",
+      "b_cancel": "Cancel",
+      "b_submit": "Save"
     }
   }
 }

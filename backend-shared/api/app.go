@@ -28,6 +28,8 @@ func InitAPI(dbHandler *database.DBHandler) {
 	app.Use(AuthMiddleware(dbHandler))
 	app.Use(PasswordResetGuard(dbHandler))
 
+	app.Post("/profile/name", UpdateNameHandler(dbHandler))
+
 	admin := app.Group("/admin", AdminMiddleware(dbHandler))
 	admin.Get("/accounts", ListUsersHandler(dbHandler))
 	admin.Post("/accounts", CreateAccountHandler(dbHandler))

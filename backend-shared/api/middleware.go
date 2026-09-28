@@ -72,9 +72,7 @@ func PasswordResetGuard(db *database.DBHandler) fiber.Handler {
 		}
 
 		if login.Temp {
-			return c.Status(403).JSON(fiber.Map{
-				"error": "Password reset required",
-			})
+			return forbidden(c)
 		}
 
 		return c.Next()
@@ -90,6 +88,12 @@ func unauthorized(c fiber.Ctx) error {
 func badRequest(c fiber.Ctx, message string) error {
 	return c.Status(400).JSON(fiber.Map{
 		"error": message,
+	})
+}
+
+func errorCode(c fiber.Ctx, status int, code string) error {
+	return c.Status(status).JSON(fiber.Map{
+		"error": code,
 	})
 }
 
