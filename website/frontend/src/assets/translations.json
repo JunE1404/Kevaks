@@ -1,0 +1,69 @@
+{
+  "en": {
+    "login": {
+      "l_title": "Login",
+      "l_username": "Username",
+      "l_password": "Password",
+      "b_login": "Login",
+      "e_login_failed": "Invalid username or password"
+    },
+    "home": {
+      "l_title": "Home",
+      "l_welcome": "Welcome, {name}",
+      "b_logout": "Logout"
+    },
+    "admin": {
+      "l_title": "Admin",
+      "b_home": "Back to home",
+      "l_loading": "Loading users...",
+      "l_col_name": "Name",
+      "l_col_role": "Role",
+      "l_col_status": "Status",
+      "l_col_temp": "Temp password",
+      "l_col_last_login": "Last login",
+      "l_enabled": "Enabled",
+      "l_disabled": "Disabled",
+      "l_yes": "Yes",
+      "l_no": "No",
+      "l_never": "Never",
+      "l_col_actions": "Actions",
+      "l_mode_add": "Add account",
+      "l_mode_status": "Enable / disable",
+      "l_mode_reset": "Reset password",
+      "l_name": "Username",
+      "l_admin": "Admin",
+      "l_dev": "Dev",
+      "l_uuid": "User UUID",
+      "b_submit": "Submit",
+      "l_success_add": "Account created",
+      "l_success_enable": "Account enabled",
+      "l_success_disable": "Account disabled",
+      "l_success_reset": "Password reset",
+      "l_failure": "Action failed",
+      "l_tmp_password": "Temporary password",
+      "b_copy": "Copy",
+      "b_copied": "Copied",
+      "b_copy_uuid": "Copy UUID"
+    },
+    "landing": {
+      "l_title": "Kevaks",
+      "l_subtitle": "Audio and video conferences for your community.",
+      "b_login": "Login"
+    },
+    "errors": {
+      "generic": "Something went wrong. Please try again."
+    },
+    "password": {
+      "l_title": "Set new password",
+      "l_password": "New password",
+      "l_repeat": "Repeat password",
+      "b_submit": "Set password",
+      "l_temp_banner": "You need to set a new password.",
+      "b_reset": "Set new password",
+      "e_length": "Password must be at least 8 characters.",
+      "e_special": "Password must contain at least one special character.",
+      "e_characters": "Password contains characters that are not allowed.",
+      "e_mismatch": "Passwords do not match."
+    }
+  }
+}

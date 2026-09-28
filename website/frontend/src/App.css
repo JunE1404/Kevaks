@@ -1,8 +1,193 @@
-.PageContainer{
+.PageContainer {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   width: 100%;
-  height: 100%;
+  flex: 1;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.Subtitle {
+  color: var(--text-second);
+}
+
+.TempBanner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.65rem 1rem;
+  background: var(--bg-second);
+  color: var(--text);
+}
+
+.LinkButton {
+  display: inline-block;
+  padding: 0.35rem 0.75rem;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--bg);
+  text-decoration: none;
+}
+
+.LinkButton:hover {
+  outline: 2px solid var(--accent);
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+input {
+  padding: 0.6rem 0.75rem;
+  font: inherit;
+  color: var(--text);
+  background: var(--bg-second);
+  border: none;
+  border-radius: 0;
+}
+
+input::placeholder {
+  color: var(--text-second);
+}
+
+input:focus-visible {
+  outline: 2px solid var(--accent);
+}
+
+button {
+  padding: 0.6rem 1rem;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--text);
+  background: var(--bg-second);
+  border: none;
+  border-radius: 0;
+}
+
+button:hover:not(:disabled) {
+  outline: 2px solid var(--accent);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.LoginForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: min(20rem, 90vw);
+  padding: 2rem;
+  background: var(--bg);
+}
+
+.LoginForm h1 {
+  margin: 0 0 0.5rem;
+  text-align: center;
+}
+
+.FormError {
+  margin: 0;
+  color: var(--accent);
+  font-size: 0.9rem;
+}
+
+select {
+  padding: 0.6rem 0.75rem;
+  font: inherit;
+  color: var(--text);
+  background: var(--bg-second);
+  border: none;
+  border-radius: 0;
+}
+
+select:focus-visible {
+  outline: 2px solid var(--accent);
+}
+
+input[type="checkbox"] {
+  width: auto;
+  padding: 0;
+  background: none;
+  accent-color: var(--accent);
+}
+
+code {
+  font-family: var(--mono);
+  color: var(--accent);
+}
+
+.AdminPage {
+  justify-content: flex-start;
+  gap: 0.75rem;
+  padding: 2rem;
+}
+
+.AdminModes {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.AdminModes button.active {
+  outline: 2px solid var(--accent);
+}
+
+.AdminForm {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.AdminCheck {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.AdminResult {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.6rem 1rem;
+  background: var(--bg-second);
+  color: var(--text);
+}
+
+.AdminResult.Failure {
+  color: var(--accent);
+}
+
+.AdminTemp {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.AdminTable {
+  margin-top: 1rem;
+  border-collapse: collapse;
+  color: var(--text);
+}
+
+.AdminTable th,
+.AdminTable td {
+  padding: 0.5rem 1rem;
+  text-align: left;
+}
+
+.AdminTable th {
+  color: var(--text-second);
+  font-weight: 600;
+}
+
+.AdminTable tbody tr:nth-child(even) {
+  background: var(--bg-second);
 }

@@ -1,13 +1,40 @@
-import './App.css'
+import { Link, Outlet, useLocation } from "react-router-dom";
+import "./App.css";
+import { AuthProvider } from "./contexts/Auth";
+import { LangProvider } from "./contexts/Language";
+import { useAuth } from "./contexts/authContext";
+import { useLanguage } from "./contexts/languageContext";
 
-function App() {
-  //test
+function AppShell() {
+  const { userData } = useAuth();
+  const { localization } = useLanguage();
+  const location = useLocation();
+
+  const showTempBanner = userData.temp && location.pathname !== "/reset-password";
+
   return (
-    <div className='PageContainer'>
-      <h2>Work in progress UwU</h2>
-      <div><img src='https://static-cdn.jtvnw.net/emoticons/v2/emotesv2_cbd812d4b1944e96b6782e4d13f18e8a/default/dark/1.0%201x,%20//static-cdn.jtvnw.net/emoticons/v2/emotesv2_cbd812d4b1944e96b6782e4d13f18e8a/default/dark/2.0%202x,%20//static-cdn.jtvnw.net/emoticons/v2/emotesv2_cbd812d4b1944e96b6782e4d13f18e8a/default/dark/4.0'></img></div>
-    </div>
-  )
+    <>
+      {showTempBanner && (
+        <div className="TempBanner">
+          <span>{localization.password.l_temp_banner}</span>
+          <Link className="LinkButton" to="/reset-password">
+            {localization.password.b_reset}
+          </Link>
+        </div>
+      )}
+      <Outlet />
+    </>
+  );
 }
 
-export default App
+function App() {
+  return (
+    <AuthProvider>
+      <LangProvider>
+        <AppShell />
+      </LangProvider>
+    </AuthProvider>
+  );
+}
+
+export default App;

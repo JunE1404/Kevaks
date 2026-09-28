@@ -1,10 +1,40 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.tsx'
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { RouterProvider, createBrowserRouter } from "react-router-dom";
+import "./index.css";
+import App from "./App";
+import { ProtectedAdminRoute } from "./components/ProtectedAdminRoute";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { Admin } from "./pages/Admin";
+import { Home } from "./pages/Home";
+import { Landing } from "./pages/Landing";
+import { Login } from "./pages/Login";
+import { ResetPassword } from "./pages/ResetPassword";
 
-createRoot(document.getElementById('root')!).render(
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <App />,
+    children: [
+      { index: true, element: <Landing /> },
+      { path: "login", element: <Login /> },
+      {
+        element: <ProtectedRoute />,
+        children: [
+          { path: "home", element: <Home /> },
+          { path: "reset-password", element: <ResetPassword /> },
+          {
+            element: <ProtectedAdminRoute />,
+            children: [{ path: "admin", element: <Admin /> }],
+          },
+        ],
+      },
+    ],
+  },
+]);
+
+createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <App />
+    <RouterProvider router={router} />
   </StrictMode>,
-)
+);
