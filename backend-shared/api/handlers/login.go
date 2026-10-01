@@ -1,4 +1,4 @@
-package api
+package handlers
 
 import (
 	"context"
@@ -6,6 +6,8 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
+	mw "github.com/kevaks/backend-shared/api/middleware"
+	helpers "github.com/kevaks/backend-shared/api/misc"
 	"github.com/kevaks/backend-shared/auth"
 	"github.com/kevaks/backend-shared/database"
 )
@@ -25,17 +27,17 @@ func LoginHandler(db *database.DBHandler) fiber.Handler {
 		if hasCredentials {
 			user, err := db.GetUserByName(ctx, body.Name)
 			if err != nil || !user.Enabled {
-				return unauthorized(c)
+				return helpers.Unauthorized(c)
 			}
 
 			login, err := db.GetLogin(ctx, user.UUID)
 			if err != nil || !auth.CompareHashAndPassword(login.PwdHash, body.Password) {
-				return unauthorized(c)
+				return helpers.Unauthorized(c)
 			}
 
 			newToken, err := auth.GenerateSessionToken()
 			if err != nil {
-				return serverError(c)
+				return helpers.ServerError(c)
 			}
 
 			session := &database.Session{
@@ -44,43 +46,43 @@ func LoginHandler(db *database.DBHandler) fiber.Handler {
 				TTL:         time.Now().Add(sessionTTL),
 			}
 			if err := db.SetSession(ctx, session); err != nil {
-				return serverError(c)
+				return helpers.ServerError(c)
 			}
 			if err := db.SetLastLogin(ctx, user.UUID, time.Now()); err != nil {
-				return serverError(c)
+				return helpers.ServerError(c)
 			}
 
-			setSessionCookie(c, user.UUID, newToken, session.TTL)
+			mw.SetSessionCookie(c, user.UUID, newToken, session.TTL)
 
 			return c.JSON(userPayload(user, login))
 		}
 
-		if uid, token, ok := readSessionCookie(c); ok {
+		if uid, token, ok := mw.ReadSessionCookie(c); ok {
 			session, err := db.GetSession(ctx, uid, token)
 			if err != nil || time.Now().After(session.TTL) {
-				return unauthorized(c)
+				return helpers.Unauthorized(c)
 			}
 
 			user, err := db.GetUser(ctx, uid)
 			if err != nil || !user.Enabled {
-				return unauthorized(c)
+				return helpers.Unauthorized(c)
 			}
 
 			login, err := db.GetLogin(ctx, uid)
 			if err != nil {
-				return unauthorized(c)
+				return helpers.Unauthorized(c)
 			}
 
 			session.TTL = time.Now().Add(sessionTTL)
 			if err := db.SetSession(ctx, session); err != nil {
-				return serverError(c)
+				return helpers.ServerError(c)
 			}
-			setSessionCookie(c, uid, token, session.TTL)
+			mw.SetSessionCookie(c, uid, token, session.TTL)
 
 			return c.JSON(userPayload(user, login))
 		}
 
-		return unauthorized(c)
+		return helpers.Unauthorized(c)
 	}
 }
 

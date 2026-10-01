@@ -1,4 +1,4 @@
-package api
+package middleware
 
 import (
 	"strings"
@@ -10,7 +10,7 @@ import (
 
 const sessionCookieName = "kevaks_session"
 
-func setSessionCookie(c fiber.Ctx, uid uuid.UUID, token string, ttl time.Time) {
+func SetSessionCookie(c fiber.Ctx, uid uuid.UUID, token string, ttl time.Time) {
 	c.Cookie(&fiber.Cookie{
 		Name:     sessionCookieName,
 		Value:    uid.String() + "." + token,
@@ -21,7 +21,7 @@ func setSessionCookie(c fiber.Ctx, uid uuid.UUID, token string, ttl time.Time) {
 	})
 }
 
-func clearSessionCookie(c fiber.Ctx) {
+func ClearSessionCookie(c fiber.Ctx) {
 	c.Cookie(&fiber.Cookie{
 		Name:     sessionCookieName,
 		Value:    "",
@@ -33,7 +33,7 @@ func clearSessionCookie(c fiber.Ctx) {
 	})
 }
 
-func readSessionCookie(c fiber.Ctx) (uuid.UUID, string, bool) {
+func ReadSessionCookie(c fiber.Ctx) (uuid.UUID, string, bool) {
 	raw := c.Cookies(sessionCookieName)
 	if raw == "" {
 		return uuid.Nil, "", false

@@ -1,4 +1,4 @@
-package api
+package middleware
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 
+	helpers "github.com/kevaks/backend-shared/api/misc"
 	"github.com/kevaks/backend-shared/database"
 )
 
@@ -16,14 +17,14 @@ func AuthMiddleware(db *database.DBHandler) fiber.Handler {
 			return c.Next()
 		}
 
-		uid, token, ok := readSessionCookie(c)
+		uid, token, ok := ReadSessionCookie(c)
 		if !ok {
-			return unauthorized(c)
+			return helpers.Unauthorized(c)
 		}
 
 		session, err := db.GetSession(context.Background(), uid, token)
 		if err != nil || time.Now().After(session.TTL) {
-			return unauthorized(c)
+			return helpers.Unauthorized(c)
 		}
 
 		c.Locals("UID", uid)
@@ -39,16 +40,16 @@ func AdminMiddleware(db *database.DBHandler) fiber.Handler {
 
 		uid, ok := c.Locals("UID").(uuid.UUID)
 		if !ok {
-			return unauthorized(c)
+			return helpers.Unauthorized(c)
 		}
 
 		user, err := db.GetUser(context.Background(), uid)
 		if err != nil {
-			return unauthorized(c)
+			return helpers.Unauthorized(c)
 		}
 
 		if !user.Admin {
-			return forbidden(c)
+			return helpers.Forbidden(c)
 		}
 
 		return c.Next()
@@ -63,54 +64,18 @@ func PasswordResetGuard(db *database.DBHandler) fiber.Handler {
 
 		uid, ok := c.Locals("UID").(uuid.UUID)
 		if !ok {
-			return unauthorized(c)
+			return helpers.Unauthorized(c)
 		}
 
 		login, err := db.GetLogin(context.Background(), uid)
 		if err != nil {
-			return unauthorized(c)
+			return helpers.Unauthorized(c)
 		}
 
 		if login.Temp {
-			return forbidden(c)
+			return helpers.Forbidden(c)
 		}
 
 		return c.Next()
 	}
-}
-
-func unauthorized(c fiber.Ctx) error {
-	return c.Status(401).JSON(fiber.Map{
-		"error": "Unauthorized",
-	})
-}
-
-func badRequest(c fiber.Ctx, message string) error {
-	return c.Status(400).JSON(fiber.Map{
-		"error": message,
-	})
-}
-
-func errorCode(c fiber.Ctx, status int, code string) error {
-	return c.Status(status).JSON(fiber.Map{
-		"error": code,
-	})
-}
-
-func forbidden(c fiber.Ctx) error {
-	return c.Status(403).JSON(fiber.Map{
-		"error": "Forbidden",
-	})
-}
-
-func notFound(c fiber.Ctx) error {
-	return c.Status(404).JSON(fiber.Map{
-		"error": "Not Found",
-	})
-}
-
-func serverError(c fiber.Ctx) error {
-	return c.Status(500).JSON(fiber.Map{
-		"error": "Internal Server Error",
-	})
 }

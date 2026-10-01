@@ -1,4 +1,4 @@
-package api
+package handlers
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 
+	helpers "github.com/kevaks/backend-shared/api/misc"
 	"github.com/kevaks/backend-shared/auth"
 	"github.com/kevaks/backend-shared/database"
 )
@@ -19,12 +20,12 @@ func CreateAccountHandler(db *database.DBHandler) fiber.Handler {
 			Dev   bool   `json:"dev"`
 		}
 		if err := c.Bind().Body(&body); err != nil || auth.ValidateName(body.Name) != nil {
-			return errorCode(c, fiber.StatusBadRequest, "e20")
+			return helpers.ErrorCode(c, fiber.StatusBadRequest, "e20")
 		}
 
 		tempPassword, err := auth.GenerateTempPassword()
 		if err != nil {
-			return serverError(c)
+			return helpers.ServerError(c)
 		}
 
 		ctx := context.Background()
@@ -38,9 +39,9 @@ func CreateAccountHandler(db *database.DBHandler) fiber.Handler {
 			Enabled: true,
 		}); err != nil {
 			if errors.Is(err, database.ErrNameTaken) {
-				return errorCode(c, fiber.StatusConflict, "e21")
+				return helpers.ErrorCode(c, fiber.StatusConflict, "e21")
 			}
-			return serverError(c)
+			return helpers.ServerError(c)
 		}
 
 		if err := db.SetLogin(ctx, &database.Login{
@@ -48,7 +49,7 @@ func CreateAccountHandler(db *database.DBHandler) fiber.Handler {
 			PwdHash: auth.HashPassword(tempPassword),
 			Temp:    true,
 		}); err != nil {
-			return serverError(c)
+			return helpers.ServerError(c)
 		}
 
 		return c.Status(201).JSON(fiber.Map{
@@ -63,7 +64,7 @@ func ListUsersHandler(db *database.DBHandler) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		users, err := db.ListUsers(context.Background())
 		if err != nil {
-			return serverError(c)
+			return helpers.ServerError(c)
 		}
 		return c.JSON(users)
 	}
@@ -73,17 +74,17 @@ func SetAccountEnabledHandler(db *database.DBHandler, enabled bool) fiber.Handle
 	return func(c fiber.Ctx) error {
 		uid, err := uuid.Parse(c.Params("uuid"))
 		if err != nil {
-			return badRequest(c, "invalid uuid")
+			return helpers.BadRequest(c, "invalid uuid")
 		}
 
 		ctx := context.Background()
 		if !enabled {
 			if err := db.DeleteUserSessions(ctx, uid); err != nil {
-				return serverError(c)
+				return helpers.ServerError(c)
 			}
 		}
 		if err := db.SetUserEnabled(ctx, uid, enabled); err != nil {
-			return notFound(c)
+			return helpers.NotFound(c)
 		}
 
 		return c.SendStatus(fiber.StatusOK)
@@ -94,22 +95,22 @@ func ResetAccountPasswordHandler(db *database.DBHandler) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		uid, err := uuid.Parse(c.Params("uuid"))
 		if err != nil {
-			return badRequest(c, "invalid uuid")
+			return helpers.BadRequest(c, "invalid uuid")
 		}
 
 		ctx := context.Background()
 		user, err := db.GetUser(ctx, uid)
 		if err != nil {
-			return notFound(c)
+			return helpers.NotFound(c)
 		}
 
 		if err := db.DeleteUserSessions(ctx, user.UUID); err != nil {
-			return serverError(c)
+			return helpers.ServerError(c)
 		}
 
 		tempPassword, err := auth.GenerateTempPassword()
 		if err != nil {
-			return serverError(c)
+			return helpers.ServerError(c)
 		}
 
 		if err := db.SetLogin(ctx, &database.Login{
@@ -117,7 +118,7 @@ func ResetAccountPasswordHandler(db *database.DBHandler) fiber.Handler {
 			PwdHash: auth.HashPassword(tempPassword),
 			Temp:    true,
 		}); err != nil {
-			return serverError(c)
+			return helpers.ServerError(c)
 		}
 
 		return c.JSON(fiber.Map{
