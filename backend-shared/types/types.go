@@ -1,4 +1,4 @@
-package trivia
+package types
 
 import "github.com/google/uuid"
 
@@ -26,5 +26,6 @@ type Field struct {
 	Uid         uuid.UUID
 	Type        string
 	Text        string
+	Answer      string
 	SpecialText string
 }

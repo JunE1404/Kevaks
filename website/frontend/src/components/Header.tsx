@@ -18,6 +18,7 @@ export function Header() {
         {isLoggedIn ? (
           <>
             <Link to="/home">{localization.home.l_title}</Link>
+            <Link to="/games">{localization.games.l_title}</Link>
             {userData.admin && (
               <Link to="/admin">{localization.admin.l_title}</Link>
             )}

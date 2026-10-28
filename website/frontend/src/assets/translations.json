@@ -12,6 +12,53 @@
       "l_welcome": "Welcome, {name}",
       "b_logout": "Logout"
     },
+    "games": {
+      "l_title": "Games",
+      "l_trivia": "Trivia",
+      "l_live": "Lobby live",
+      "l_offline": "No live lobby",
+      "e_no_lobby": "There is no live lobby for this game right now.",
+      "l_lobby_placeholder": "The trivia lobby will be available soon.",
+      "b_back": "Back to games"
+    },
+    "creator": {
+      "l_title": "Trivia game configurations",
+      "b_create": "Create game",
+      "b_back": "Back to games",
+      "l_loading": "Loading configurations...",
+      "l_empty": "No configurations yet.",
+      "l_done": "Complete",
+      "l_in_progress": "In progress",
+      "b_delete": "Delete configuration",
+      "b_open_lobby": "Open lobby"
+    },
+    "editor": {
+      "l_title": "Game configuration",
+      "l_game_title": "Game title",
+      "b_back": "Back to configurations",
+      "b_save": "Save",
+      "l_saving": "Saving...",
+      "l_saved": "Saved",
+      "l_dirty": "Unsaved changes",
+      "l_loading": "Loading game...",
+      "b_add_board": "Add board",
+      "b_add_row": "Add row",
+      "b_add_column": "Add column",
+      "l_points": "Points",
+      "l_empty_field": "Add question",
+      "l_field_special": "Special field",
+      "l_special_name": "Special card name",
+      "l_question": "Question",
+      "l_answer": "Answer",
+      "b_close": "Close",
+      "e_load": "Could not load this game."
+    },
+    "lobby": {
+      "l_connecting": "Connecting to lobby...",
+      "l_players": "Players",
+      "l_empty": "No players connected.",
+      "l_admin": "Admin"
+    },
     "admin": {
       "l_title": "Admin",
       "b_home": "Back to home",
@@ -54,7 +101,10 @@
     "errors": {
       "generic": "Something went wrong. Please try again.",
       "e20": "Name may only contain letters and numbers.",
-      "e21": "That name is already taken."
+      "e21": "That name is already taken.",
+      "e30": "A category has more questions than the board has rows.",
+      "e31": "A question has an invalid type.",
+      "e32": "Special questions need a special card name."
     },
     "password": {
       "l_title": "Set new password",

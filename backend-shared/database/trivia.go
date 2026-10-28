@@ -8,10 +8,11 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
-	"github.com/kevaks/backend-shared/games/trivia"
+	t "github.com/kevaks/backend-shared/types"
 )
 
 var (
+	ErrGameNotFound         = errors.New("trivia game not found")
 	ErrGameForbidden        = errors.New("trivia game does not belong to this user")
 	ErrTooManyCategoryField = errors.New("trivia category has more fields than category points")
 	ErrFieldTypeInvalid     = errors.New("trivia field type must be \"normal\" or \"special\"")
@@ -39,7 +40,7 @@ type TriviaGameInfo struct {
 // "normal" or "special" (ErrFieldTypeInvalid) and a "special" field must carry
 // special text (ErrSpecialTextRequired). game.Done is recomputed as part of the
 // save.
-func (db *DBHandler) SaveTriviaGame(ctx context.Context, owner uuid.UUID, game *trivia.TriviaGame) error {
+func (db *DBHandler) SaveTriviaGame(ctx context.Context, owner uuid.UUID, game *t.TriviaGame) error {
 	tx, err := db.Conn.Begin(ctx)
 	if err != nil {
 		return fmt.Errorf("begin trivia game transaction: %w", err)
@@ -99,7 +100,7 @@ func (db *DBHandler) SaveTriviaGame(ctx context.Context, owner uuid.UUID, game *
 	return nil
 }
 
-func saveBoard(ctx context.Context, tx pgx.Tx, gameUid uuid.UUID, position int, board *trivia.Board) error {
+func saveBoard(ctx context.Context, tx pgx.Tx, gameUid uuid.UUID, position int, board *t.Board) error {
 	if board.Uid == uuid.Nil {
 		board.Uid = uuid.New()
 	}
@@ -150,7 +151,7 @@ func saveBoard(ctx context.Context, tx pgx.Tx, gameUid uuid.UUID, position int, 
 	return nil
 }
 
-func saveCategory(ctx context.Context, tx pgx.Tx, boardUid uuid.UUID, position int, category *trivia.Category) error {
+func saveCategory(ctx context.Context, tx pgx.Tx, boardUid uuid.UUID, position int, category *t.Category) error {
 	if category.Uid == uuid.Nil {
 		category.Uid = uuid.New()
 	}
@@ -193,15 +194,16 @@ func saveCategory(ctx context.Context, tx pgx.Tx, boardUid uuid.UUID, position i
 	for i := range category.Fields {
 		field := &category.Fields[i]
 		if _, err := tx.Exec(ctx, `
-			INSERT INTO game.trivia_fields (uuid, category_uuid, type, text, special_text, position)
-			VALUES ($1, $2, $3, $4, $5, $6)
+			INSERT INTO game.trivia_fields (uuid, category_uuid, type, text, special_text, answer, position)
+			VALUES ($1, $2, $3, $4, $5, $6, $7)
 			ON CONFLICT (uuid) DO UPDATE SET
 				category_uuid = EXCLUDED.category_uuid,
 				type = EXCLUDED.type,
 				text = EXCLUDED.text,
 				special_text = EXCLUDED.special_text,
+				answer = EXCLUDED.answer,
 				position = EXCLUDED.position`,
-			field.Uid, category.Uid, field.Type, field.Text, field.SpecialText, i); err != nil {
+			field.Uid, category.Uid, field.Type, field.Text, field.SpecialText, field.Answer, i); err != nil {
 			return fmt.Errorf("upsert trivia field %s: %w", field.Uid, err)
 		}
 	}
@@ -211,8 +213,8 @@ func saveCategory(ctx context.Context, tx pgx.Tx, boardUid uuid.UUID, position i
 // GetTriviaGame loads a game and its full board state, ordered exactly as it
 // was saved, ready to be serialized back to the frontend. Only a game owned by
 // the supplied owner is returned.
-func (db *DBHandler) GetTriviaGame(ctx context.Context, owner uuid.UUID, uid uuid.UUID) (*trivia.TriviaGame, error) {
-	game := &trivia.TriviaGame{Boards: []trivia.Board{}}
+func (db *DBHandler) GetTriviaGame(ctx context.Context, owner uuid.UUID, uid uuid.UUID) (*t.TriviaGame, error) {
+	game := &t.TriviaGame{Boards: []t.Board{}}
 
 	row := db.Conn.QueryRow(ctx, `
 		SELECT uuid, owner, title, done
@@ -235,7 +237,7 @@ func (db *DBHandler) GetTriviaGame(ctx context.Context, owner uuid.UUID, uid uui
 	boardIndex := map[uuid.UUID]int{}
 	for boardRows.Next() {
 		var (
-			board  trivia.Board
+			board  t.Board
 			points []int32
 		)
 		if err := boardRows.Scan(&board.Uid, &board.Title, &points); err != nil {
@@ -245,7 +247,7 @@ func (db *DBHandler) GetTriviaGame(ctx context.Context, owner uuid.UUID, uid uui
 		for i, p := range points {
 			board.CategoryPoints[i] = int(p)
 		}
-		board.Categories = []trivia.Category{}
+		board.Categories = []t.Category{}
 		boardIndex[board.Uid] = len(game.Boards)
 		game.Boards = append(game.Boards, board)
 	}
@@ -279,10 +281,10 @@ func (db *DBHandler) GetTriviaGame(ctx context.Context, owner uuid.UUID, uid uui
 		if !ok {
 			continue
 		}
-		game.Boards[bi].Categories = append(game.Boards[bi].Categories, trivia.Category{
+		game.Boards[bi].Categories = append(game.Boards[bi].Categories, t.Category{
 			Uid:    categoryUid,
 			Name:   name,
-			Fields: []trivia.Field{},
+			Fields: []t.Field{},
 		})
 		categoryBoard[categoryUid] = bi
 		categoryPosition[categoryUid] = len(game.Boards[bi].Categories) - 1
@@ -292,7 +294,7 @@ func (db *DBHandler) GetTriviaGame(ctx context.Context, owner uuid.UUID, uid uui
 	}
 
 	fieldRows, err := db.Conn.Query(ctx, `
-		SELECT f.uuid, f.category_uuid, f.type, f.text, f.special_text
+		SELECT f.uuid, f.category_uuid, f.type, f.text, f.special_text, f.answer
 		FROM game.trivia_fields f
 		JOIN game.trivia_categories c ON c.uuid = f.category_uuid
 		JOIN game.trivia_boards b ON b.uuid = c.board_uuid
@@ -309,9 +311,10 @@ func (db *DBHandler) GetTriviaGame(ctx context.Context, owner uuid.UUID, uid uui
 			categoryUid uuid.UUID
 			fieldType   string
 			text        string
+			answer      string
 			specialText string
 		)
-		if err := fieldRows.Scan(&fieldUid, &categoryUid, &fieldType, &text, &specialText); err != nil {
+		if err := fieldRows.Scan(&fieldUid, &categoryUid, &fieldType, &text, &specialText, &answer); err != nil {
 			return nil, err
 		}
 		bi, ok := categoryBoard[categoryUid]
@@ -324,7 +327,7 @@ func (db *DBHandler) GetTriviaGame(ctx context.Context, owner uuid.UUID, uid uui
 		}
 		game.Boards[bi].Categories[ci].Fields = append(
 			game.Boards[bi].Categories[ci].Fields,
-			trivia.Field{Uid: fieldUid, Type: fieldType, Text: text, SpecialText: specialText},
+			t.Field{Uid: fieldUid, Type: fieldType, Text: text, Answer: answer, SpecialText: specialText},
 		)
 	}
 	if err := fieldRows.Err(); err != nil {
@@ -332,6 +335,21 @@ func (db *DBHandler) GetTriviaGame(ctx context.Context, owner uuid.UUID, uid uui
 	}
 
 	return game, nil
+}
+
+// DeleteTriviaGame removes a game owned by the supplied owner. Boards,
+// categories and fields are removed by the ON DELETE CASCADE constraints.
+func (db *DBHandler) DeleteTriviaGame(ctx context.Context, owner uuid.UUID, uid uuid.UUID) error {
+	tag, err := db.Conn.Exec(ctx, `
+		DELETE FROM game.trivia_games
+		WHERE uuid = $1 AND owner = $2`, uid, owner)
+	if err != nil {
+		return fmt.Errorf("delete trivia game: %w", err)
+	}
+	if tag.RowsAffected() == 0 {
+		return ErrGameNotFound
+	}
+	return nil
 }
 
 // ListTriviaGames returns a lightweight summary of every game owned by the
@@ -361,7 +379,7 @@ func (db *DBHandler) ListTriviaGames(ctx context.Context, owner uuid.UUID) ([]Tr
 // triviaGameDone reports whether every category in the game is fully populated,
 // i.e. has exactly as many fields as its board declares category points. A game
 // without any categories is not considered done.
-func triviaGameDone(game *trivia.TriviaGame) bool {
+func triviaGameDone(game *t.TriviaGame) bool {
 	hasCategory := false
 	for _, board := range game.Boards {
 		for _, category := range board.Categories {

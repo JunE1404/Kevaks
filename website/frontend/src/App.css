@@ -253,3 +253,324 @@ code {
 .AdminTable tbody tr:nth-child(even) button {
   background: var(--bg);
 }
+
+.GamesPage,
+.GameCreatorPage,
+.EditorPage {
+  gap: 1rem;
+}
+
+.GameGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 1rem;
+  width: 100%;
+}
+
+.GameCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  min-height: 8rem;
+  padding: 1rem;
+  background: var(--bg-second);
+  color: var(--text);
+  text-align: left;
+}
+
+.GameCardOpen {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  align-items: flex-start;
+  gap: 0.5rem;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0;
+  background: transparent;
+  text-align: left;
+}
+
+.GameCardDelete {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem;
+  background: var(--bg);
+  color: var(--text-second);
+}
+
+.GameCardDelete:hover:not(:disabled) {
+  color: var(--accent);
+}
+
+.GameCardLobby {
+  box-sizing: border-box;
+  width: 100%;
+  background: var(--bg);
+}
+
+.LobbyPage {
+  gap: 1rem;
+}
+
+.LobbyPlayers {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.LobbyPlayer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 1rem;
+  background: var(--bg-second);
+}
+
+.LobbyAdmin {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.GameCardTitle {
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.GameCardStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--text-second);
+}
+
+.GameCardStatus.Live {
+  color: var(--text);
+}
+
+.LiveDot {
+  width: 0.6rem;
+  height: 0.6rem;
+  background: var(--text-second);
+}
+
+.GameCardStatus.Live .LiveDot {
+  background: #4ade80;
+}
+
+.EditorHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+}
+
+.EditorSave {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.GameTitleInput {
+  flex: 1;
+  min-width: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.BoardTabs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.BoardTab.active {
+  outline: 2px solid var(--accent);
+}
+
+.BoardToolbar {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+}
+
+.TriviaBoard {
+  display: grid;
+  gap: 0.4rem;
+  width: 100%;
+}
+
+.TriviaCell {
+  min-width: 0;
+}
+
+.TriviaCorner,
+.PointCell {
+  display: flex;
+  align-items: center;
+}
+
+.PointCell {
+  align-items: stretch;
+}
+
+.TriviaCorner {
+  color: var(--text-second);
+  font-weight: 600;
+}
+
+.PointInput {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.PointInput::-webkit-outer-spin-button,
+.PointInput::-webkit-inner-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
+}
+
+.CategoryHeader {
+  display: flex;
+}
+
+.CategoryHeader input {
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.CategoryTitle {
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.FieldCard {
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.25rem;
+  min-height: 5rem;
+  padding: 0.5rem;
+  overflow: hidden;
+  background: var(--bg-second);
+  text-align: left;
+}
+
+.FieldSpecial {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  max-width: calc(100% - 1rem);
+  color: var(--text-second);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.FieldSpecialText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.FieldStar {
+  flex: none;
+  color: var(--accent);
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.FieldText {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  color: var(--text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.PointAdd {
+  display: flex;
+}
+
+.PointAdd button {
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.ModalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgb(0 0 0 / 55%);
+}
+
+.Modal {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  box-sizing: border-box;
+  width: min(28rem, 100%);
+  padding: 1.25rem;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.ModalLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  color: var(--text-second);
+}
+
+.ModalCheck {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 7rem;
+  padding: 0.6rem 0.75rem;
+  font: inherit;
+  color: var(--text);
+  background: var(--bg-second);
+  border: none;
+  border-radius: 0;
+  resize: vertical;
+}
+
+textarea:focus-visible {
+  outline: 2px solid var(--accent);
+}

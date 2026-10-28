@@ -13,7 +13,6 @@ import (
 
 func InitAPI(dbHandler *database.DBHandler) {
 	app := fiber.New()
-
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:5173"},
 		AllowCredentials: true,
@@ -34,6 +33,10 @@ func InitAPI(dbHandler *database.DBHandler) {
 
 	app.Get("/games/trivia", h.ListTriviaGamesHandler(dbHandler))
 	app.Post("/games/trivia", h.SaveTriviaGameHandler(dbHandler))
+	app.Delete("/games/trivia/delete/:uuid", h.DeleteTriviaGameHandler(dbHandler))
+	app.Post("/games/trivia/start/:uuid", h.StartTriviaGameHandler(dbHandler))
+	app.Get("/games/trivia/ws", h.TriviaWebSocketHandler())
+	app.Get("/games/trivia/getactivelobby", h.TriviaActiveLobbyHandler())
 	app.Get("/games/trivia/:uuid", h.GetTriviaGameHandler(dbHandler))
 
 	admin := app.Group("/admin", mw.AdminMiddleware(dbHandler))
