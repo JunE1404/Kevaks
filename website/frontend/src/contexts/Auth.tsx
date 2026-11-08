@@ -22,7 +22,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (user) {
           setUserData(user);
           setIsLoggedIn(true);
-          navigate("/home");
+          const path = window.location.pathname;
+          if (path === "/" || path === "/login") {
+            navigate("/home");
+          }
   }
       } finally {
         if (active) {

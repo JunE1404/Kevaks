@@ -41,7 +41,7 @@ export function Games() {
     }
 
     if (activeLobby) {
-      navigate("/games/trivia/lobby");
+      navigate("/game/trivia/lobby");
       return;
     }
 

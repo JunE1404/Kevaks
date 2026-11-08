@@ -42,22 +42,46 @@ export interface TriviaGameInfo {
 export interface TriviaLobbyPlayer {
   uuid: string;
   admin: boolean;
+  name: string;
+  points: number;
+  connected: boolean;
+  livekitIdentity: string;
+}
+
+export type TriviaCardIndex = [board: number, category: number, row: number];
+
+export interface TriviaCard {
+  special: boolean;
+  question: string;
+  specialString: string;
+  index: TriviaCardIndex | null;
+  value: number;
+}
+
+export interface TriviaBoardView {
+  title: string;
+  categoryPoints: number[];
+  categories: string[];
 }
 
 // The live game snapshot broadcast by the hub. Mirrors games/trivia.Game.
 export interface TriviaLobbyState {
   lobbyState: number;
+  currentBoardIdx: number;
+  phase: number;
   gameState: {
-    boardId: number;
     boardMask: boolean[][][];
-    currentQuestion: {
-      special: boolean;
-      question: string;
-      specialString: string;
-    };
+    currentQuestion: TriviaCard;
   };
   admin: string;
   players: Record<string, TriviaLobbyPlayer>;
+  playerOrder: string[];
+  currentPlayer: number;
+  buzzPlayer: string;
+  lastAnswer: boolean;
+  roundPointsAwarded: boolean;
+  freeForAll: boolean;
+  boards: TriviaBoardView[];
   title: string;
 }
 
@@ -135,6 +159,36 @@ export async function getActiveTriviaLobby(): Promise<boolean> {
     throw new Error("Failed to check active trivia lobby");
   }
   return res.json() as Promise<boolean>;
+}
+
+export interface TriviaJoinToken {
+  url: string;
+  token: string;
+  identity: string;
+}
+
+export async function getTriviaJoinToken(): Promise<TriviaJoinToken> {
+  const res = await fetch(`${API_BASE}/games/trivia/join-token`, {
+    credentials: "include",
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to get trivia join token");
+  }
+  return res.json() as Promise<TriviaJoinToken>;
+}
+
+export async function registerTriviaIdentity(identity: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/games/trivia/register-identity`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ identity }),
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to register trivia identity");
+  }
 }
 
 export type SaveTriviaResult =

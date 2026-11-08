@@ -105,7 +105,7 @@ export function GameCreator() {
         setError(true);
         return;
       }
-      navigate("/games/trivia/lobby");
+      navigate("/game/trivia/lobby");
     } catch {
       setError(true);
     } finally {

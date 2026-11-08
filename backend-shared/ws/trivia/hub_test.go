@@ -19,7 +19,7 @@ import (
 func TestHubSelfDestructsWhenEmpty(t *testing.T) {
 	g := &game.Game{
 		Gamestate: game.GameState{GameData: &types.TriviaGame{}},
-		Players:   map[int]game.Player{},
+		Players:   map[uuid.UUID]game.Player{},
 	}
 	ws.NewHub(g)
 	if !ws.TriviaLobbyActive() {
@@ -45,18 +45,6 @@ func TestHubSelfDestructsWhenEmpty(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := conn.WriteJSON(map[string]any{
-		"event": "join",
-		"data":  map[string]any{"asAdmin": false},
-	}); err != nil {
-		t.Fatal(err)
-	}
-
-	_ = conn.SetReadDeadline(time.Now().Add(2 * time.Second))
-	if _, _, err := conn.ReadMessage(); err != nil {
-		t.Fatalf("expected user_joined broadcast: %v", err)
-	}
-
 	_ = conn.Close()
 
 	deadline := time.Now().Add(2 * time.Second)
@@ -77,7 +65,7 @@ func TestConnectionLimits(t *testing.T) {
 	g := &game.Game{
 		Admin:     owner,
 		Gamestate: game.GameState{GameData: &types.TriviaGame{Owner: owner}},
-		Players:   map[int]game.Player{},
+		Players:   map[uuid.UUID]game.Player{},
 	}
 	ws.NewHub(g)
 

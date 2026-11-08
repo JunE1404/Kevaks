@@ -15,7 +15,11 @@ import { Login } from "./pages/Login";
 import { Profile } from "./pages/Profile";
 import { ResetPassword } from "./pages/ResetPassword";
 import { TriviaEditor } from "./pages/TriviaEditor";
+import { TriviaError } from "./pages/TriviaError";
+import { TriviaGame } from "./pages/TriviaGame";
 import { TriviaLobby } from "./pages/TriviaLobby";
+import { TriviaSocketProvider } from "./contexts/TriviaSocket";
+import { LiveKitProvider } from "./contexts/LiveKit";
 
 const router = createBrowserRouter([
   {
@@ -31,7 +35,20 @@ const router = createBrowserRouter([
           { path: "profile", element: <Profile /> },
           { path: "reset-password", element: <ResetPassword /> },
           { path: "games", element: <Games /> },
-          { path: "games/trivia/lobby", element: <TriviaLobby /> },
+          {
+            element: <TriviaSocketProvider />,
+            children: [
+              {
+                element: <LiveKitProvider />,
+                children: [
+                  { path: "game/trivia/lobby", element: <TriviaLobby /> },
+                  { path: "game/trivia/ingame", element: <TriviaGame /> },
+                ],
+              },
+              { path: "game/trivia/admin", element: <TriviaGame /> },
+            ],
+          },
+          { path: "games/trivia/error", element: <TriviaError /> },
           {
             element: <ProtectedDevRoute />,
             children: [

@@ -1,81 +1,35 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
+import { VideoTrackView } from "../components/LiveKitMedia";
 import { useAuth } from "../contexts/authContext";
 import { useLanguage } from "../contexts/languageContext";
-import type {
-  TriviaLobbyPlayer,
-  TriviaLobbyState,
-  TriviaSocketEvent,
-} from "../requests/trivia";
-
-function socketUrl(): string {
-  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-  return `${protocol}//${window.location.host}/api/games/trivia/ws`;
-}
+import { useLiveKit } from "../contexts/livekitContext";
+import { useTriviaSocket } from "../contexts/triviaSocketContext";
 
 export function TriviaLobby() {
   const { userData } = useAuth();
   const { localization } = useLanguage();
+  const liveKit = useLiveKit();
+  const { gameState, connected, error, startGame } = useTriviaSocket();
+  const setupStarted = useRef(false);
 
-  const [title, setTitle] = useState("");
-  const [players, setPlayers] = useState<TriviaLobbyPlayer[]>([]);
-  const [connected, setConnected] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const asAdmin = userData.admin || userData.dev;
-  const genericError = localization.errors.generic;
+  const isOwner = gameState?.admin === userData.uuid;
+  const lobbyState = gameState?.lobbyState ?? 0;
 
   useEffect(() => {
-    const socket = new WebSocket(socketUrl());
+    if (!connected || setupStarted.current) {
+      return;
+    }
+    setupStarted.current = true;
+    void liveKit.setupLocalTracks();
+  }, [connected, liveKit]);
 
-    socket.onopen = () => {
-      setConnected(true);
-      setError(null);
-      socket.send(
-        JSON.stringify({ event: "join", data: { asAdmin } }),
-      );
-    };
+  if (lobbyState !== 0) return null;
 
-    socket.onmessage = (message) => {
-      if (typeof message.data !== "string") return;
-
-      let event: TriviaSocketEvent;
-      try {
-        event = JSON.parse(message.data) as TriviaSocketEvent;
-      } catch {
-        return;
-      }
-
-      if (event.event === "error") {
-        const data = event.data as { message?: string } | undefined;
-        setError(data?.message ?? genericError);
-        return;
-      }
-
-      if (event.event === "user_joined" || event.event === "user_quit") {
-        const state = event.data as TriviaLobbyState | undefined;
-        if (!state) return;
-        setTitle(state.title);
-        setPlayers(Object.values(state.players));
-      }
-    };
-
-    socket.onclose = () => {
-      setConnected(false);
-    };
-
-    socket.onerror = () => {
-      setError(genericError);
-    };
-
-    return () => {
-      socket.close();
-    };
-  }, [asAdmin, genericError]);
-
-  const uniquePlayers = [
-    ...new Map(players.map((player) => [player.uuid, player])).values(),
-  ];
+  const title = gameState?.title ?? "";
+  const connectedPlayers = gameState
+    ? Object.values(gameState.players).filter((player) => player.connected)
+    : [];
 
   return (
     <div className="PageContainer LobbyPage">
@@ -93,14 +47,82 @@ export function TriviaLobby() {
 
       {connected && (
         <>
+          <h2>{localization.lobby.l_camera}</h2>
+          <div className="LobbyCamera">
+            <div className="LobbyCameraPreview">
+              {liveKit.localCameraTrack && liveKit.cameraEnabled ? (
+                <VideoTrackView
+                  track={liveKit.localCameraTrack}
+                  muted
+                  mirrored
+                />
+              ) : (
+                <span className="Subtitle">
+                  {localization.lobby.l_camera_off}
+                </span>
+              )}
+            </div>
+
+            <div className="LobbyCameraSettings">
+              <label className="LobbyDevice">
+                <span>{localization.lobby.l_camera}</span>
+                <select
+                  value={liveKit.cameraId}
+                  onChange={(event) => {
+                    void liveKit.selectCamera(event.target.value);
+                  }}
+                  disabled={liveKit.cameraDevices.length === 0}
+                >
+                  {liveKit.cameraDevices.map((device) => (
+                    <option key={device.deviceId} value={device.deviceId}>
+                      {device.label || device.deviceId}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="LobbyDevice">
+                <span>{localization.lobby.l_microphone}</span>
+                <select
+                  value={liveKit.microphoneId}
+                  onChange={(event) => {
+                    void liveKit.selectMicrophone(event.target.value);
+                  }}
+                  disabled={liveKit.microphoneDevices.length === 0}
+                >
+                  {liveKit.microphoneDevices.map((device) => (
+                    <option key={device.deviceId} value={device.deviceId}>
+                      {device.label || device.deviceId}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              {!liveKit.localCameraTrack && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    void liveKit.setupLocalTracks();
+                  }}
+                >
+                  {localization.lobby.b_setup_media}
+                </button>
+              )}
+
+              {liveKit.error && (
+                <p className="FormError">{liveKit.error}</p>
+              )}
+            </div>
+          </div>
+
           <h2>{localization.lobby.l_players}</h2>
-          {uniquePlayers.length === 0 ? (
+          {connectedPlayers.length === 0 ? (
             <p className="Subtitle">{localization.lobby.l_empty}</p>
           ) : (
             <ul className="LobbyPlayers">
-              {uniquePlayers.map((player) => (
+              {connectedPlayers.map((player) => (
                 <li key={player.uuid} className="LobbyPlayer">
-                  <code>{player.uuid}</code>
+                  <code>{player.name}</code>
                   {player.admin && (
                     <span className="LobbyAdmin">
                       {localization.lobby.l_admin}
@@ -109,6 +131,12 @@ export function TriviaLobby() {
                 </li>
               ))}
             </ul>
+          )}
+
+          {isOwner && (
+            <button type="button" onClick={startGame}>
+              {localization.lobby.b_start}
+            </button>
           )}
         </>
       )}

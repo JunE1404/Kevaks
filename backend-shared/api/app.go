@@ -37,6 +37,8 @@ func InitAPI(dbHandler *database.DBHandler) {
 	app.Post("/games/trivia/start/:uuid", h.StartTriviaGameHandler(dbHandler))
 	app.Get("/games/trivia/ws", h.TriviaWebSocketHandler())
 	app.Get("/games/trivia/getactivelobby", h.TriviaActiveLobbyHandler())
+	app.Get("/games/trivia/join-token", h.TriviaJoinTokenHandler())
+	app.Post("/games/trivia/register-identity", h.TriviaRegisterIdentityHandler())
 	app.Get("/games/trivia/:uuid", h.GetTriviaGameHandler(dbHandler))
 
 	admin := app.Group("/admin", mw.AdminMiddleware(dbHandler))

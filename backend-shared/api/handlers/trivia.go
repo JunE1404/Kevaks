@@ -187,3 +187,67 @@ func TriviaActiveLobbyHandler() fiber.Handler {
 		return c.JSON(ws.TriviaLobbyActive())
 	}
 }
+
+func TriviaJoinTokenHandler() fiber.Handler {
+	return func(c fiber.Ctx) error {
+		uid, ok := c.Locals("UID").(uuid.UUID)
+		if !ok {
+			return helpers.Unauthorized(c)
+		}
+
+		hub := ws.GetHub()
+		if hub == nil {
+			return helpers.NotFound(c)
+		}
+
+		token, err := hub.JoinToken(uid)
+		if err != nil {
+			if errors.Is(err, triv.ErrNotInGame) {
+				return helpers.Forbidden(c)
+			}
+			return helpers.ServerError(c)
+		}
+
+		return c.JSON(fiber.Map{
+			"url":      hub.LiveKitURL(),
+			"token":    token,
+			"identity": uid.String(),
+		})
+	}
+}
+
+func TriviaRegisterIdentityHandler() fiber.Handler {
+	return func(c fiber.Ctx) error {
+		uid, ok := c.Locals("UID").(uuid.UUID)
+		if !ok {
+			return helpers.Unauthorized(c)
+		}
+
+		hub := ws.GetHub()
+		if hub == nil {
+			return helpers.NotFound(c)
+		}
+
+		var body struct {
+			Identity string `json:"identity"`
+		}
+		if err := c.Bind().Body(&body); err != nil {
+			return helpers.BadRequest(c, "invalid identity")
+		}
+
+		identity := strings.TrimSpace(body.Identity)
+		if identity == "" {
+			return helpers.BadRequest(c, "invalid identity")
+		}
+
+		if err := hub.Game.RegisterIdentity(uid, identity); err != nil {
+			if errors.Is(err, triv.ErrNotInGame) {
+				return helpers.Forbidden(c)
+			}
+			return helpers.ServerError(c)
+		}
+
+		hub.Broadcast(ws.Event{Event: "b_update"})
+		return c.SendStatus(fiber.StatusOK)
+	}
+}
