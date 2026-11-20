@@ -121,8 +121,8 @@ func TestAwardPointsPersistsScoreAndMarksCell(t *testing.T) {
 	if !g.Gamestate.BoardMask[0][0][1] {
 		t.Error("used cell was marked at the wrong mask position")
 	}
-	if !g.LastAnswerCorrect || g.Phase != 4 {
-		t.Errorf("lastAnswer/phase = %v/%d, want true/4", g.LastAnswerCorrect, g.Phase)
+	if !g.LastAnswerCorrect || g.Phase != 5 {
+		t.Errorf("lastAnswer/phase = %v/%d, want true/5", g.LastAnswerCorrect, g.Phase)
 	}
 	if !g.RoundPointsAwarded {
 		t.Error("RoundPointsAwarded should be true after scoring the card")
@@ -194,8 +194,8 @@ func TestFreeForAllWrongAnswerCompletesQuestion(t *testing.T) {
 	if got := g.Players[second].Points; got != 0 {
 		t.Errorf("Points = %d, want 0", got)
 	}
-	if g.Phase != 4 {
-		t.Errorf("Phase = %d, want 4 (question completed)", g.Phase)
+	if g.Phase != 5 {
+		t.Errorf("Phase = %d, want 5 (question completed)", g.Phase)
 	}
 	if g.FreeForAll {
 		t.Error("FreeForAll should be cleared once the question is completed")
@@ -234,8 +234,8 @@ func TestFreeForAllCorrectAnswerCompletesQuestion(t *testing.T) {
 	if got := g.Players[second].Points; got != 300 {
 		t.Errorf("Points = %d, want 300", got)
 	}
-	if !g.LastAnswerCorrect || g.Phase != 4 {
-		t.Errorf("lastAnswer/phase = %v/%d, want true/4", g.LastAnswerCorrect, g.Phase)
+	if !g.LastAnswerCorrect || g.Phase != 5 {
+		t.Errorf("lastAnswer/phase = %v/%d, want true/5", g.LastAnswerCorrect, g.Phase)
 	}
 	if g.FreeForAll {
 		t.Error("FreeForAll should be cleared once the question is completed")
@@ -387,6 +387,32 @@ func TestRegisterIdentity(t *testing.T) {
 
 	if err := g.RegisterIdentity(uuid.New(), "other"); !errors.Is(err, ErrNotInGame) {
 		t.Errorf("RegisterIdentity(unknown) = %v, want ErrNotInGame", err)
+	}
+}
+
+func TestFinishGame(t *testing.T) {
+	owner := uuid.New()
+	g := newTestGame()
+	g.Admin = owner
+	g.Gamestate.GameData.Owner = owner
+
+	if err := g.Finish(owner); !errors.Is(err, ErrBoardNotComplete) {
+		t.Errorf("Finish with open questions = %v, want ErrBoardNotComplete", err)
+	}
+
+	g.Gamestate.BoardMask[0] = [][]bool{{true, true}, {true, true}}
+
+	if err := g.Finish(uuid.New()); !errors.Is(err, ErrAdminOnly) {
+		t.Errorf("Finish by a non-owner = %v, want ErrAdminOnly", err)
+	}
+	if err := g.Finish(owner); err != nil {
+		t.Fatalf("Finish returned %v", err)
+	}
+	if g.Phase != 4 {
+		t.Errorf("Phase = %d, want 4", g.Phase)
+	}
+	if err := g.Finish(owner); !errors.Is(err, ErrGameAlreadyFinished) {
+		t.Errorf("second Finish = %v, want ErrGameAlreadyFinished", err)
 	}
 }
 

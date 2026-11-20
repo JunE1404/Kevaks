@@ -10,6 +10,7 @@ import { Admin } from "./pages/Admin";
 import { GameCreator } from "./pages/GameCreator";
 import { Games } from "./pages/Games";
 import { Home } from "./pages/Home";
+import { Imprint } from "./pages/Imprint";
 import { Landing } from "./pages/Landing";
 import { Login } from "./pages/Login";
 import { Profile } from "./pages/Profile";
@@ -28,6 +29,7 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Landing /> },
       { path: "login", element: <Login /> },
+      { path: "imprint", element: <Imprint /> },
       {
         element: <ProtectedRoute />,
         children: [
@@ -43,9 +45,9 @@ const router = createBrowserRouter([
                 children: [
                   { path: "game/trivia/lobby", element: <TriviaLobby /> },
                   { path: "game/trivia/ingame", element: <TriviaGame /> },
+                  { path: "game/trivia/admin", element: <TriviaGame /> },
                 ],
               },
-              { path: "game/trivia/admin", element: <TriviaGame /> },
             ],
           },
           { path: "games/trivia/error", element: <TriviaError /> },

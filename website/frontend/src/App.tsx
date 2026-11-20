@@ -12,11 +12,11 @@ function AppShell() {
   const location = useLocation();
 
   const showTempBanner = userData.temp && location.pathname !== "/reset-password";
-  const hideHeader = /^\/game(\/|$)/.test(location.pathname);
+  const hideChrome = /^\/game(\/|$)/.test(location.pathname);
 
   return (
     <>
-      {!hideHeader && <Header />}
+      {!hideChrome && <Header />}
       {showTempBanner && (
         <div className="TempBanner">
           <span>{localization.password.l_temp_banner}</span>
@@ -26,6 +26,13 @@ function AppShell() {
         </div>
       )}
       <Outlet />
+      {!hideChrome && (
+        <footer className="Footer">
+          <span title={localization.footer.l_contact}>
+            {localization.footer.l_credit}
+          </span>
+        </footer>
+      )}
     </>
   );
 }

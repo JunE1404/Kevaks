@@ -13,21 +13,22 @@ import (
 )
 
 var (
-	ErrAdminOnly        = errors.New("only the game owner may join as admin")
-	ErrConnectionLimit  = errors.New("connection limit reached for this account")
-	ErrUserError        = errors.New("User not found")
-	ErrNotJoined        = errors.New("player has not joined the lobby")
-	ErrStartForbidden   = errors.New("only an admin may start the game")
-	ErrNotInGame        = errors.New("you were not in the lobby when the game started")
-	ErrInvalidCard      = errors.New("invalid card selection")
-	ErrCardAlreadyUsed  = errors.New("this card has already been played")
-	ErrCardNotResolved  = errors.New("award points for the current card before selecting another")
-	ErrNotAnswerPhase   = errors.New("the game is not in the answer phase")
-	ErrNotChoicePhase   = errors.New("the game is not in the card choice phase")
-	ErrAdminCannotBuzz  = errors.New("the game admin cannot buzz")
-	ErrAlreadyBuzzed    = errors.New("a player already buzzed")
-	ErrBoardNotComplete = errors.New("all questions on the current board must be completed first")
-	ErrNoMoreBoards     = errors.New("there is no next board")
+	ErrAdminOnly           = errors.New("only the game owner may join as admin")
+	ErrConnectionLimit     = errors.New("connection limit reached for this account")
+	ErrUserError           = errors.New("User not found")
+	ErrNotJoined           = errors.New("player has not joined the lobby")
+	ErrStartForbidden      = errors.New("only an admin may start the game")
+	ErrNotInGame           = errors.New("you were not in the lobby when the game started")
+	ErrInvalidCard         = errors.New("invalid card selection")
+	ErrCardAlreadyUsed     = errors.New("this card has already been played")
+	ErrCardNotResolved     = errors.New("award points for the current card before selecting another")
+	ErrNotAnswerPhase      = errors.New("the game is not in the answer phase")
+	ErrNotChoicePhase      = errors.New("the game is not in the card choice phase")
+	ErrAdminCannotBuzz     = errors.New("the game admin cannot buzz")
+	ErrAlreadyBuzzed       = errors.New("a player already buzzed")
+	ErrBoardNotComplete    = errors.New("all questions on the current board must be completed first")
+	ErrNoMoreBoards        = errors.New("there is no next board")
+	ErrGameAlreadyFinished = errors.New("the game is already finished")
 )
 
 type Card struct {
@@ -343,15 +344,33 @@ func (g *Game) NextBoard() error {
 // currentBoardComplete reports whether every populated cell on the active board
 // has been played.
 func (g *Game) currentBoardComplete() bool {
+	return g.boardComplete(g.CurrentBoardIdx)
+}
+
+// allBoardsComplete reports whether every populated cell on every board has
+// been played.
+func (g *Game) allBoardsComplete() bool {
+	if g.Gamestate.GameData == nil {
+		return false
+	}
+	for index := range g.Gamestate.GameData.Boards {
+		if !g.boardComplete(index) {
+			return false
+		}
+	}
+	return true
+}
+
+func (g *Game) boardComplete(index int) bool {
 	if g.Gamestate.GameData == nil ||
-		g.CurrentBoardIdx < 0 ||
-		g.CurrentBoardIdx >= len(g.Gamestate.GameData.Boards) ||
-		g.CurrentBoardIdx >= len(g.Gamestate.BoardMask) {
+		index < 0 ||
+		index >= len(g.Gamestate.GameData.Boards) ||
+		index >= len(g.Gamestate.BoardMask) {
 		return false
 	}
 
-	board := g.Gamestate.GameData.Boards[g.CurrentBoardIdx]
-	mask := g.Gamestate.BoardMask[g.CurrentBoardIdx]
+	board := g.Gamestate.GameData.Boards[index]
+	mask := g.Gamestate.BoardMask[index]
 	for column, category := range board.Categories {
 		for row := range board.CategoryPoints {
 			if row >= len(category.Fields) || category.Fields[row].Text == "" {
@@ -477,7 +496,7 @@ func (g *Game) AwardPoints(correct bool) error {
 		player.Points += question.Value
 		g.LastAnswerCorrect = true
 		g.markCurrentCardUsed()
-		g.Phase = 4
+		g.Phase = 5
 		g.FreeForAll = false
 		g.RoundPointsAwarded = true
 	} else {
@@ -488,7 +507,7 @@ func (g *Game) AwardPoints(correct bool) error {
 			g.markCurrentCardUsed()
 			g.BuzzPlayer = uuid.Nil
 			g.FreeForAll = false
-			g.Phase = 4
+			g.Phase = 5
 			g.RoundPointsAwarded = true
 		} else {
 			g.BuzzPlayer = uuid.Nil
@@ -499,6 +518,24 @@ func (g *Game) AwardPoints(correct bool) error {
 	}
 
 	g.Players[buzzPlayer] = player
+	return nil
+}
+
+func (g *Game) Finish(player uuid.UUID) error {
+	g.muGame.Lock()
+	defer g.muGame.Unlock()
+
+	if player != g.ownerId() {
+		return ErrAdminOnly
+	}
+	if g.Phase == 4 {
+		return ErrGameAlreadyFinished
+	}
+	if !g.allBoardsComplete() {
+		return ErrBoardNotComplete
+	}
+
+	g.Phase = 4
 	return nil
 }
 

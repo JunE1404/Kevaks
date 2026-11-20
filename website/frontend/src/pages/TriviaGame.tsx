@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { TriviaAdminScreen } from "../components/TriviaAdminScreen";
+import { TriviaEndScreen } from "../components/TriviaEndScreen";
 import { TriviaGameScreen } from "../components/TriviaGameScreen";
 import { useAuth } from "../contexts/authContext";
 import { useLanguage } from "../contexts/languageContext";
@@ -57,6 +58,29 @@ export function TriviaGame() {
     return null;
   }
 
+  if (isAdminPath && isOwner) {
+    return (
+      <div className="PageContainer GamePage">
+        <GameHomeButton label={localization.home.l_title} />
+        <h1 className="GameName">
+          {gameState.title || localization.games.l_trivia}
+        </h1>
+        {error && <p className="FormError">{error}</p>}
+        <TriviaAdminScreen state={gameState} />
+      </div>
+    );
+  }
+
+  if (gameState.phase === 4) {
+    return (
+      <div className="PageContainer GamePage">
+        <GameHomeButton label={localization.home.l_title} />
+        {error && <p className="FormError">{error}</p>}
+        <TriviaEndScreen state={gameState} />
+      </div>
+    );
+  }
+
   return (
     <div className="PageContainer GamePage">
       <GameHomeButton label={localization.home.l_title} />
@@ -64,11 +88,7 @@ export function TriviaGame() {
         {gameState.title || localization.games.l_trivia}
       </h1>
       {error && <p className="FormError">{error}</p>}
-      {isAdminPath && isOwner ? (
-        <TriviaAdminScreen state={gameState} />
-      ) : (
-        <TriviaGameScreen state={gameState} />
-      )}
+      <TriviaGameScreen state={gameState} />
     </div>
   );
 }

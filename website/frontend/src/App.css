@@ -6,8 +6,75 @@
   width: 85%;
   flex: 1;
   margin: var(--header-height) auto 0;
-  background: var(--bg);
   color: var(--text);
+}
+
+.PageContainer.LandingPage {
+  margin-top: 5rem;
+  align-items: center;
+  gap: 6rem;
+  text-align: center;
+}
+
+.SocialRow {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 5rem;
+  margin-top: 1rem;
+}
+
+.SocialItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.3rem;
+}
+
+.DiscordItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.3rem;
+}
+
+.DiscordText{
+    font-weight: 500;
+}
+
+.SolcialsField{
+    display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.3rem;
+}
+
+.SocialIcon {
+  display: block;
+  width: 5rem;
+  height: 5rem;
+}
+
+.SocialHandle {
+  color: var(--text-second);
+  font-size: 1.5rem;
+}
+
+.gradient {
+  background-image: linear-gradient(
+    140deg,
+    hsl(260deg 100% 1%) 0%,
+    hsl(261deg 100% 6%) 13%,
+    hsl(262deg 100% 12%) 31%,
+    hsl(262deg 100% 17%) 50%,
+    hsl(263deg 100% 23%) 67%,
+    hsl(264deg 100% 28%) 79%,
+    hsl(265deg 100% 34%) 87%,
+    hsl(265deg 100% 39%) 93%,
+    hsl(266deg 100% 45%) 97%,
+    hsl(267deg 100% 50%) 100%
+  );
 }
 
 .Subtitle {
@@ -19,22 +86,74 @@
   align-items: center;
   justify-content: space-between;
   box-sizing: border-box;
-  gap: 1rem;
+  gap: 2rem;
+  height: var(--header-height);
   min-height: var(--header-height);
   padding: 0.65rem 1.5rem;
-  background: var(--bg-second);
   color: var(--text);
+  margin-top: 1rem;
 }
 
 .HeaderBrand {
   font-weight: 600;
   color: var(--text);
+    display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  height: 100%; 
+}
+.KevaksBrandImage{
+  height: 100%;
 }
 
 .HeaderNav {
+  height: 100%;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 2rem;
+}
+
+.HeaderButton{
+  height: 100%;
+  padding: 0.6rem 1rem;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--text);
+  background-color: transparent;
+  border: solid 1px transparent;
+  transition: color 0.15s ease, background-color 0.15s ease,
+    border-color 0.15s ease, transform 0.1s ease;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  gap: 10%;
+}
+
+.HeaderButton:hover{
+  transform: scale(1.15);  /* painted, not laid out */
+}
+
+.AccountIcon {
+  height: 1.5em;
+  flex: none;          /* don't let the flex nav squash it */
+  fill: currentColor;  /* or: color: var(--accent) + fill: currentColor */
+}
+
+.Footer {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0.75rem 1.5rem;
+  color: var(--text-second);
+  font-size: 0.85rem;
+}
+
+.Footer span {
+  cursor: default;
 }
 
 .TempBanner {
@@ -47,18 +166,6 @@
   color: var(--text);
 }
 
-.LinkButton {
-  display: inline-block;
-  padding: 0.35rem 0.75rem;
-  font-weight: 600;
-  color: var(--text);
-  background: var(--bg);
-  text-decoration: none;
-}
-
-.LinkButton:hover {
-  outline: 2px solid var(--accent);
-}
 
 a {
   color: var(--accent);
@@ -79,7 +186,7 @@ input::placeholder {
 }
 
 input:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 1px solid var(--accent);
 }
 
 select {
@@ -92,10 +199,10 @@ select {
 }
 
 select:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 1px solid var(--accent);
 }
 
-button {
+.FunctionButton {
   padding: 0.6rem 1rem;
   font: inherit;
   font-weight: 600;
@@ -106,11 +213,11 @@ button {
   border-radius: 0;
 }
 
-button:hover:not(:disabled) {
-  outline: 2px solid var(--accent);
+.FunctionButton:hover:not(:disabled) {
+  outline: 1px solid var(--accent);
 }
 
-button:disabled {
+.FunctionButton:disabled {
   opacity: 0.6;
   cursor: default;
 }
@@ -126,7 +233,6 @@ button:disabled {
   box-sizing: border-box;
   width: min(20rem, 100%);
   padding: 2rem;
-  background: var(--bg);
 }
 
 .LoginForm h1 {
@@ -143,9 +249,9 @@ button:disabled {
   gap: 1rem;
 }
 
-.ProfileLine {
+.UsernameBlock {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 0.75rem;
 }
 
@@ -164,6 +270,19 @@ button:disabled {
 .ProfileActions {
   display: flex;
   gap: 0.75rem;
+  margin-top: 3rem;
+}
+
+.UsernameRow{
+  height: 3rem;
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  align-items: center;
+}
+
+.alert{
+  background-color: #c6282878;
 }
 
 select {
@@ -176,7 +295,7 @@ select {
 }
 
 select:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 1px solid var(--accent);
 }
 
 input[type="checkbox"] {
@@ -195,13 +314,11 @@ code {
   gap: 0.75rem;
 }
 
-.AdminModes {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.AdminModes button.active {
-  outline: 2px solid var(--accent);
+.AdminPage h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text-second);
 }
 
 .AdminForm {
@@ -227,7 +344,6 @@ code {
   gap: 1rem;
   flex-wrap: wrap;
   padding: 0.6rem 1rem;
-  background: var(--bg-second);
   color: var(--text);
 }
 
@@ -252,6 +368,7 @@ code {
 .AdminTable td {
   padding: 0.5rem 1rem;
   text-align: left;
+  border-bottom: 1px var(--text) solid;
 }
 
 .AdminTable th {
@@ -259,12 +376,10 @@ code {
   font-weight: 600;
 }
 
-.AdminTable tbody tr:nth-child(even) {
-  background: var(--bg-second);
-}
-
-.AdminTable tbody tr:nth-child(even) button {
-  background: var(--bg);
+.AdminActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .GamesPage,
@@ -291,6 +406,14 @@ code {
   background: var(--bg-second);
   color: var(--text);
   text-align: left;
+  border: 1px transparent solid;
+  transition: color 0.1s ease, background-color 0.1s ease,
+    border-color 0.1s ease, transform 0.1s ease;
+}
+
+.GameCard:hover {
+  border: 1px var(--text) solid;
+  cursor: pointer;
 }
 
 .GameCardOpen {
@@ -304,6 +427,11 @@ code {
   padding: 0;
   background: transparent;
   text-align: left;
+  border: none;
+}
+
+.GameCardOpen:hover{
+  cursor: pointer;
 }
 
 .GameCardDelete {
@@ -313,19 +441,16 @@ code {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.35rem;
+  padding: 0.4rem;
   background: var(--bg);
   color: var(--text-second);
+  border: none;
 }
 
 .GameCardDelete:hover:not(:disabled) {
   color: var(--accent);
-}
-
-.GameCardLobby {
-  box-sizing: border-box;
-  width: 100%;
-  background: var(--bg);
+  cursor: pointer;
+  transform: scale(1.2);
 }
 
 .LobbyPage {
@@ -361,6 +486,7 @@ code {
   flex-direction: column;
   gap: 1rem;
   width: 100%;
+  height: 75%;
 }
 
 .GameName {
@@ -377,7 +503,7 @@ code {
   width: 100%;
   margin-top: 1rem;
   padding: 0 1.5rem;
-  gap: 1rem;
+  gap: 2rem;
 }
 
 .GameHome {
@@ -391,11 +517,11 @@ code {
   width: 2.75rem;
   height: 2.75rem;
   color: var(--text);
-  background: var(--bg-second);
+  background: #ffffff11;
 }
 
 .GameHome:hover {
-  outline: 2px solid var(--accent);
+  outline: 1px solid var(--accent);
 }
 
 .GameLayout {
@@ -403,6 +529,7 @@ code {
   align-items: stretch;
   gap: 0.75rem;
   width: 100%;
+  height: 100%;
 }
 
 .CameraColumn {
@@ -469,11 +596,14 @@ code {
 
 .CameraControls {
   position: absolute;
+  top: 0.5rem;
   right: 0.5rem;
-  bottom: 0.5rem;
   z-index: 2;
   display: flex;
   gap: 0.35rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
 }
 
 .CameraControls button {
@@ -481,10 +611,42 @@ code {
   font-size: 0.75rem;
   color: #fff;
   background: rgb(0 0 0 / 60%);
+  border: 1px transparent solid;
+}
+.CameraControls button:hover {
+  cursor: pointer;
+  border: 1px var(--text) solid;
 }
 
-.CameraTile.self .CameraPoints {
-  bottom: 2.5rem;
+.CameraSettingsButton {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 2;
+  width: 1.9rem;
+  height: 1.9rem;
+  padding: 0;
+  font-size: 1rem;
+  line-height: 1;
+  color: #fff;
+  background: rgb(0 0 0 / 60%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  border: 1px transparent;
+}
+
+.CameraSettingsButton:hover{
+  cursor: pointer;
+  border: 1px var(--text) solid;
+}
+
+.CameraTile.self:hover .CameraControls,
+.CameraTile.self:hover .CameraSettingsButton,
+.CameraTile.self:focus-within .CameraControls,
+.CameraTile.self:focus-within .CameraSettingsButton {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .CameraName {
@@ -504,6 +666,11 @@ code {
   bottom: 0.5rem;
   color: var(--accent);
   font-weight: 600;
+}
+
+.CameraTile.self .CameraPoints {
+  top: auto;
+  bottom: 0.5rem;
 }
 
 .GameBoardGrid {
@@ -571,7 +738,15 @@ code {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  color: var(--text-second);
+  color: var(--text);
+  padding: 0.3rem;
+}
+
+.GameCardStatus.complete{
+  background-color: #25fc3045;
+}
+.GameCardStatus.inprogress{
+  background-color: #fc8d2545;
 }
 
 .GameCardStatus.Live {
@@ -605,7 +780,8 @@ code {
 .GameTitleInput {
   flex: 1;
   min-width: 0;
-  font-size: 1.5rem;
+  height: 1.5rem;
+  font-size: 1.3rem;
   font-weight: 600;
 }
 
@@ -617,8 +793,20 @@ code {
   width: 100%;
 }
 
+.BoardTab{  
+  padding: 0.3rem 0.6rem;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--text);
+  background: var(--bg-second);
+  border: none;
+  border-radius: 0;
+}
+
 .BoardTab.active {
-  outline: 2px solid var(--accent);
+  outline: 1px solid var(--accent);
 }
 
 .BoardToolbar {
@@ -645,6 +833,7 @@ code {
 
 .PointCell {
   align-items: stretch;
+  gap: 0.2rem;
 }
 
 .TriviaCorner {
@@ -654,6 +843,8 @@ code {
 
 .PointInput {
   box-sizing: border-box;
+  flex: 1;
+  min-width: 0;
   width: 100%;
   height: 100%;
   text-align: center;
@@ -667,20 +858,72 @@ code {
   -webkit-appearance: none;
 }
 
+.CellDelete {
+  flex: none;
+  padding: 0 0.45rem;
+  font-size: 1rem;
+  line-height: 1;
+  color: var(--text-second);
+  background: var(--bg-second);
+  border: 1px transparent solid;
+}
+
+.CellDelete:hover {
+  border: 1px var(--text) solid;
+}
+
+.CellDeleteHeader {
+  flex: none;
+  padding: 0 0.45rem;
+  font-size: 1rem;
+  line-height: 1;
+  color: var(--text-second);
+  background: var(--bg-second);
+  border: 1px transparent solid;
+  aspect-ratio: 1;
+}
+
+.CellDeleteHeader:hover {
+  border: 1px var(--text) solid;
+}
+
 .CategoryHeader {
   display: flex;
+  gap: 0.2rem;
 }
 
 .CategoryHeader input {
   box-sizing: border-box;
+  flex: 1;
+  min-width: 0;
+  padding: 0.3rem 0.6rem;
   width: 100%;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
 }
 
 .CategoryTitle {
+  flex: 1;
+  min-width: 0;
   width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  padding: 0.3rem 0.6rem;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--text);
+  background: var(--bg-second);
+  border-radius: 0;
+  border: 1px transparent solid
+}
+
+.CategoryTitle:hover{
+  cursor: pointer;
+  border: 1px var(--text) solid;
 }
 
 .FieldCard {
@@ -695,6 +938,12 @@ code {
   overflow: hidden;
   background: var(--bg-second);
   text-align: left;
+  border: 1px transparent solid;
+}
+
+.FieldCard:hover{
+  cursor: pointer;
+  border: 1px var(--text) solid;
 }
 
 .FieldSpecial {
@@ -777,10 +1026,13 @@ code {
   gap: 0.4rem;
 }
 
+.QuestionInput{
+  height: 5rem;
+}
+
 textarea {
   box-sizing: border-box;
   width: 100%;
-  min-height: 7rem;
   padding: 0.6rem 0.75rem;
   font: inherit;
   color: var(--text);
@@ -791,7 +1043,7 @@ textarea {
 }
 
 textarea:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 1px solid var(--accent);
 }
 
 .AdminScreen {
@@ -826,13 +1078,13 @@ textarea:focus-visible {
 }
 
 .AdminPlayer.current {
-  outline: 2px solid #fff;
-  outline-offset: -2px;
+  outline: 1px solid #fff;
+  outline-offset: -1px;
 }
 
 .AdminPlayer.buzzed {
-  outline: 2px solid #3b82f6;
-  outline-offset: -2px;
+  outline: 1px solid #3b82f6;
+  outline-offset: -1px;
 }
 
 .AdminPlayerName {
@@ -854,8 +1106,16 @@ textarea:focus-visible {
 }
 
 .AdminAnswerButton {
-  padding: 0.5rem 0.9rem;
+  padding: 0.3rem 0.6rem;
   color: #fff;
+  font: inherit;
+  font-size: 0.8rem;
+  border: 1px transparent solid;
+}
+
+.AdminAnswerButton:hover{
+  border: 1px var(--text) solid;
+  cursor: pointer;
 }
 
 .AdminAnswerButton.correct {
@@ -886,7 +1146,7 @@ textarea:focus-visible {
   background: #4b4b52;
 }
 
-.LobbyCameraSettings {
+.CameraSettings {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -900,6 +1160,82 @@ textarea:focus-visible {
   color: var(--text-second);
 }
 
+.EndScreen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  width: 100%;
+}
+
+.EndHost {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.EndHost .EndCamera {
+  width: min(34rem, 80%);
+}
+
+.EndCamera {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  color: var(--text);
+  background: #4b4b52;
+}
+
+.Podium {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.PodiumPlace {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(20rem, 28%);
+}
+
+.PodiumPlace.place-1 {
+  width: min(26rem, 36%);
+}
+
+.PodiumPoints {
+  margin-bottom: 0.5rem;
+  color: var(--accent);
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.PodiumBlock {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 5rem;
+  color: var(--text);
+  background: var(--bg-second);
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+.place-1 .PodiumBlock {
+  min-height: 7.5rem;
+}
+
+.PodiumCamera {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
 .AdminPointCell {
   color: var(--accent);
 }
@@ -910,6 +1246,19 @@ textarea:focus-visible {
   font-size: 0.85rem;
   font-weight: 400;
   text-align: center;
+  border: 1px transparent;
+}
+
+.AdminQuestionCell:hover:not(:disabled){
+  border: 1px var(--text) solid;
+  cursor: pointer;
+}
+
+.AdminQuestionCell.current {
+  border: 1px var(--accent) solid;
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  color: var(--accent);
 }
 
 .AdminBoardHeader {
@@ -987,6 +1336,50 @@ textarea:focus-visible {
 }
 
 .BuzzButton {
-  padding: 0.8rem 2.5rem;
+  padding: 1rem 3rem;
   font-size: 1.1rem;
+  background-color: #ffffff25;
+  border: 1px transparent solid;
+}
+
+.BuzzButton:hover{
+  border: 1px var(--text) solid;
+  cursor: pointer;
+}
+
+
+.VolumeControl {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  left: 0.5rem;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.2rem 0.5rem;
+  color: #fff;
+  background: rgb(0 0 0 / 60%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.CameraTile:hover .VolumeControl,
+.CameraTile:focus-within .VolumeControl {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.VolumeLabel {
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.VolumeSlider {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  background: none;
+  accent-color: hsla(267, 100%, 60%, 0.821);
 }

@@ -157,6 +157,10 @@ export function TriviaSocketProvider() {
     sendEvent("admin_next_board");
   }
 
+  function finishGame() {
+    sendEvent("admin_finish_game");
+  }
+
   function selectCard(index: TriviaCardIndex) {
     sendEvent("admin_select_card", { index });
   }
@@ -179,6 +183,7 @@ export function TriviaSocketProvider() {
         startGame,
         nextRound,
         nextBoard,
+        finishGame,
         selectCard,
         submitAnswer,
         buzz,

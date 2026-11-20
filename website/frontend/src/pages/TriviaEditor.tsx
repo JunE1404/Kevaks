@@ -1,10 +1,11 @@
 import { Fragment, useEffect, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useLanguage } from "../contexts/languageContext";
 import { emptyField, newBoard, newCategory } from "../misc/trivia";
 import {
   getTriviaGame,
   saveTriviaGame,
+  startTriviaGame,
   type TriviaBoard,
   type TriviaErrorCode,
   type TriviaField,
@@ -18,6 +19,7 @@ const AUTOSAVE_DELAY = 3000;
 export function TriviaEditor() {
   const { gameId } = useParams<{ gameId: string }>();
   const { localization } = useLanguage();
+  const navigate = useNavigate();
 
   const [game, setGame] = useState<TriviaGame | null>(null);
   const [loading, setLoading] = useState(true);
@@ -27,6 +29,7 @@ export function TriviaEditor() {
   const [target, setTarget] = useState<FieldTarget | null>(null);
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [starting, setStarting] = useState(false);
   const [saveError, setSaveError] = useState<TriviaErrorCode | null>(null);
 
   const gameRef = useRef<TriviaGame | null>(null);
@@ -143,6 +146,27 @@ export function TriviaEditor() {
     }
   }
 
+  async function openLobby() {
+    const current = gameRef.current;
+    if (!current) return;
+
+    setStarting(true);
+    setSaveError(null);
+
+    try {
+      const created = await startTriviaGame(current.Uid);
+      if (!created) {
+        setSaveError("unknown");
+        return;
+      }
+      navigate("/game/trivia/lobby");
+    } catch {
+      setSaveError("unknown");
+    } finally {
+      setStarting(false);
+    }
+  }
+
   function updateBoard(boardIndex: number, updater: (board: TriviaBoard) => TriviaBoard) {
     updateGame((current) => ({
       ...current,
@@ -184,6 +208,24 @@ export function TriviaEditor() {
     updateBoard(activeBoard, (board) => ({
       ...board,
       Categories: [...board.Categories, newCategory(board.Categories.length + 1)],
+    }));
+  }
+
+  function removeCategory(categoryIndex: number) {
+    updateBoard(activeBoard, (board) => ({
+      ...board,
+      Categories: board.Categories.filter((_, index) => index !== categoryIndex),
+    }));
+  }
+
+  function removeRow(row: number) {
+    updateBoard(activeBoard, (board) => ({
+      ...board,
+      CategoryPoints: board.CategoryPoints.filter((_, index) => index !== row),
+      Categories: board.Categories.map((category) => ({
+        ...category,
+        Fields: category.Fields.filter((_, index) => index !== row),
+      })),
     }));
   }
 
@@ -235,15 +277,15 @@ export function TriviaEditor() {
   }
 
   const board = game.Boards[activeBoard] ?? game.Boards[0];
+  const canDeleteCategory = board.Categories.length > 1;
+  const canDeleteRow = board.CategoryPoints.length > 1;
   const modalField =
     target !== null
       ? game.Boards[target.board]?.Categories[target.category]?.Fields[target.row]
       : undefined;
-  const modalType = modalField?.Type ?? "normal";
 
   return (
     <div className="PageContainer EditorPage">
-      <Link to="/games/trivia/create">{localization.editor.b_back}</Link>
       <div className="EditorHeader">
         <input
           type="text"
@@ -255,8 +297,16 @@ export function TriviaEditor() {
           }
         />
         <div className="EditorSave">
-          <button type="button" onClick={() => void saveNow()} disabled={saving}>
+          <button className="FunctionButton" type="button" onClick={() => void saveNow()} disabled={saving}>
             {localization.editor.b_save}
+          </button>
+          <button
+            className="FunctionButton"
+            type="button"
+            onClick={() => void openLobby()}
+            disabled={!game.Done || dirty || saving || starting}
+          >
+            {localization.editor.b_open_lobby}
           </button>
           {saving ? (
             <span className="Subtitle">{localization.editor.l_saving}</span>
@@ -282,13 +332,13 @@ export function TriviaEditor() {
             {item.Title}
           </button>
         ))}
-        <button type="button" onClick={addBoard}>
+        <button className="BoardTab" type="button" onClick={addBoard}>
           {localization.editor.b_add_board}
         </button>
       </div>
 
       <div className="BoardToolbar">
-        <button type="button" onClick={addCategory}>
+        <button className="FunctionButton" type="button" onClick={addCategory}>
           {localization.editor.b_add_column}
         </button>
       </div>
@@ -329,8 +379,18 @@ export function TriviaEditor() {
                 {category.Name}
               </button>
             )}
-          </div>
-        ))}
+            {canDeleteCategory && (
+              <button
+                type="button"
+                className="CellDeleteHeader"
+                onClick={() => removeCategory(categoryIndex)}
+                aria-label={localization.editor.b_delete_category}
+                title={localization.editor.b_delete_category}
+              >
+                ×
+              </button>
+            )}
+          </div>        ))}
 
         {board.CategoryPoints.map((point, row) => (
           <Fragment key={`row-${row}`}>
@@ -344,6 +404,17 @@ export function TriviaEditor() {
                   if (!Number.isNaN(value)) updatePoint(row, value);
                 }}
               />
+              {canDeleteRow && (
+                <button
+                  type="button"
+                  className="CellDelete"
+                  onClick={() => removeRow(row)}
+                  aria-label={localization.editor.b_delete_row}
+                  title={localization.editor.b_delete_row}
+                >
+                  ×
+                </button>
+              )}
             </div>
 
             {board.Categories.map((category, categoryIndex) => {
@@ -382,7 +453,7 @@ export function TriviaEditor() {
         ))}
 
         <div className="TriviaCell PointAdd">
-          <button type="button" onClick={addRow}>
+          <button className="FunctionButton" type="button" onClick={addRow}>
             {localization.editor.b_add_row}
           </button>
         </div>
@@ -391,35 +462,11 @@ export function TriviaEditor() {
       {target && (
         <div className="ModalOverlay" onClick={() => setTarget(null)}>
           <div className="Modal" onClick={(event) => event.stopPropagation()}>
-            <label className="ModalCheck">
-              <input
-                type="checkbox"
-                checked={modalType === "special"}
-                onChange={(event) =>
-                  updateField(target, {
-                    Type: event.target.checked ? "special" : "normal",
-                  })
-                }
-              />
-              {localization.editor.l_field_special}
-            </label>
-
-            {modalType === "special" && (
-              <label className="ModalLabel">
-                {localization.editor.l_special_name}
-                <input
-                  type="text"
-                  value={modalField?.SpecialText ?? ""}
-                  onChange={(event) =>
-                    updateField(target, { SpecialText: event.target.value })
-                  }
-                />
-              </label>
-            )}
 
             <label className="ModalLabel">
               {localization.editor.l_question}
               <textarea
+                className="QuestionInput"
                 value={modalField?.Text ?? ""}
                 onChange={(event) =>
                   updateField(target, { Text: event.target.value })
@@ -430,6 +477,7 @@ export function TriviaEditor() {
             <label className="ModalLabel">
               {localization.editor.l_answer}
               <input
+                className="QuestionInput"
                 type="text"
                 value={modalField?.Answer ?? ""}
                 onChange={(event) =>
@@ -438,7 +486,7 @@ export function TriviaEditor() {
               />
             </label>
 
-            <button type="button" onClick={() => setTarget(null)}>
+            <button className="FunctionButton" type="button" onClick={() => setTarget(null)}>
               {localization.editor.b_close}
             </button>
           </div>

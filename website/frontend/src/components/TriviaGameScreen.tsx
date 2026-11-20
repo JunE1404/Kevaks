@@ -1,4 +1,5 @@
-import { Fragment } from "react";
+import { Fragment, useId, useState } from "react";
+import { CameraSettings } from "./CameraSettings";
 import { AudioTrackView, VideoTrackView } from "./LiveKitMedia";
 import { useAuth } from "../contexts/authContext";
 import { useLanguage } from "../contexts/languageContext";
@@ -29,6 +30,9 @@ function CameraTile({
     toggleCamera,
     toggleMicrophone,
   } = useLiveKit();
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [volume, setVolume] = useState(1.0);
+  const volumeId = useId();
 
   const inRoom =
     Boolean(player.livekitIdentity) &&
@@ -53,10 +57,40 @@ function CameraTile({
       {showVideo && videoTrack && (
         <VideoTrackView track={videoTrack} muted={isSelf} mirrored={isSelf} />
       )}
-      {audioTrack && <AudioTrackView track={audioTrack} />}
+      {audioTrack && <AudioTrackView track={audioTrack} volume={volume} />}
+      {!isSelf && (
+        <div className="VolumeControl">
+          <label className="VolumeLabel" htmlFor={volumeId}>
+            {localization.lobby.l_volume}
+          </label>
+          <input
+            className="VolumeSlider"
+            id={volumeId}
+            type="range"
+            name="volume"
+            min={0}
+            max={1}
+            step={0.01}
+            value={volume}
+            onChange={(e) => setVolume(Number(e.target.value))}
+          />
+        </div>
+      )}
 
       <span className="CameraName">{player.name}</span>
-      <span className="CameraPoints">{player.points}</span>
+      {!host && <span className="CameraPoints">{player.points}</span>}
+
+      {isSelf && (
+        <button
+          type="button"
+          className="CameraSettingsButton"
+          onClick={() => setSettingsOpen(true)}
+          aria-label={localization.lobby.l_camera_settings}
+          title={localization.lobby.l_camera_settings}
+        >
+          ⚙
+        </button>
+      )}
 
       {isSelf && (
         <div className="CameraControls">
@@ -80,6 +114,24 @@ function CameraTile({
               ? localization.lobby.b_camera_off
               : localization.lobby.b_camera_on}
           </button>
+        </div>
+      )}
+
+      {isSelf && settingsOpen && (
+        <div
+          className="ModalOverlay"
+          onClick={() => setSettingsOpen(false)}
+        >
+          <div
+            className="Modal"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <h2>{localization.lobby.l_camera_settings}</h2>
+            <CameraSettings />
+            <button className="FunctionButton" type="button" onClick={() => setSettingsOpen(false)}>
+              {localization.editor.b_close}
+            </button>
+          </div>
         </div>
       )}
     </div>
@@ -108,7 +160,8 @@ export function TriviaGameScreen({ state }: { state: TriviaLobbyState }) {
 
   const currentPlayerId = state.playerOrder?.[state.currentPlayer];
   const question = state.gameState.currentQuestion;
-  const showQuestion = state.phase >= 2 && question.index !== null;
+  const showQuestion =
+    (state.phase === 2 || state.phase === 3) && question.index !== null;
   const isHost = state.admin === userData.uuid;
 
   const board = state.boards?.[state.currentBoardIdx];

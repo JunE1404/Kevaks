@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import type { SubmitEvent } from "react";
-import { Link } from "react-router-dom";
 import { CopyButton } from "../components/CopyButton";
 import { useLanguage } from "../contexts/languageContext";
 import { isValidName } from "../misc/helpers";
@@ -13,9 +12,6 @@ import {
   type AdminUser,
 } from "../requests/admin";
 
-type Mode = "add" | "status" | "reset";
-type StatusAction = "enable" | "disable";
-
 type Result = {
   success: boolean;
   message: string;
@@ -27,16 +23,13 @@ export function Admin() {
 
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
-  const [mode, setMode] = useState<Mode>("add");
   const [busy, setBusy] = useState(false);
+  const [busyUuid, setBusyUuid] = useState<string | null>(null);
   const [result, setResult] = useState<Result>(null);
 
   const [name, setName] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
   const [isDev, setIsDev] = useState(false);
-  const [statusUuid, setStatusUuid] = useState("");
-  const [statusAction, setStatusAction] = useState<StatusAction>("enable");
-  const [resetUuid, setResetUuid] = useState("");
   const [hideDisabled, setHideDisabled] = useState(false);
 
   async function refreshUsers() {
@@ -67,11 +60,6 @@ export function Admin() {
       active = false;
     };
   }, []);
-
-  function switchMode(next: Mode) {
-    setMode(next);
-    setResult(null);
-  }
 
   const nameErrorMessages: Record<ErrorCode, string> = {
     e20: localization.errors.e20,
@@ -111,47 +99,44 @@ export function Admin() {
     }
   }
 
-  async function handleStatus(event: SubmitEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setBusy(true);
+  async function toggleEnabled(user: AdminUser) {
+    const nextEnabled = !user.enabled;
+    setBusyUuid(user.uuid);
     setResult(null);
 
     try {
-      await setAccountEnabled(statusUuid, statusAction === "enable");
+      await setAccountEnabled(user.uuid, nextEnabled);
       setResult({
         success: true,
-        message:
-          statusAction === "enable"
-            ? localization.admin.l_success_enable
-            : localization.admin.l_success_disable,
+        message: nextEnabled
+          ? localization.admin.l_success_enable
+          : localization.admin.l_success_disable,
       });
-      setStatusUuid("");
       await refreshUsers();
     } catch {
       setResult({ success: false, message: localization.admin.l_failure });
     } finally {
-      setBusy(false);
+      setBusyUuid(null);
     }
   }
 
-  async function handleReset(event: SubmitEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setBusy(true);
+  async function resetUserPassword(user: AdminUser) {
+    setBusyUuid(user.uuid);
     setResult(null);
 
     try {
-      const reset = await resetAccountPassword(resetUuid);
+      const reset = await resetAccountPassword(user.uuid);
+
       setResult({
         success: true,
-        message: localization.admin.l_success_reset,
+        message: "Password reset for "+user.name+".",
         temporaryPassword: reset.temporary_password,
       });
-      setResetUuid("");
       await refreshUsers();
     } catch {
       setResult({ success: false, message: localization.admin.l_failure });
     } finally {
-      setBusy(false);
+      setBusyUuid(null);
     }
   }
 
@@ -160,99 +145,36 @@ export function Admin() {
   return (
     <div className="PageContainer AdminPage">
       <h1>{localization.admin.l_title}</h1>
-      <Link to="/home">{localization.admin.b_home}</Link>
 
-      <div className="AdminModes">
-        <button
-          type="button"
-          className={mode === "add" ? "active" : ""}
-          onClick={() => switchMode("add")}
-        >
-          {localization.admin.l_mode_add}
-        </button>
-        <button
-          type="button"
-          className={mode === "status" ? "active" : ""}
-          onClick={() => switchMode("status")}
-        >
-          {localization.admin.l_mode_status}
-        </button>
-        <button
-          type="button"
-          className={mode === "reset" ? "active" : ""}
-          onClick={() => switchMode("reset")}
-        >
-          {localization.admin.l_mode_reset}
-        </button>
-      </div>
-
-      {mode === "add" && (
-        <form className="AdminForm" onSubmit={handleAdd}>
+      <h2>{localization.admin.l_create_account}</h2>
+      <form className="AdminForm" onSubmit={handleAdd}>
+        <input
+          type="text"
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+          placeholder={localization.admin.l_name}
+          required
+        />
+        <label className="AdminCheck">
           <input
-            type="text"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            placeholder={localization.admin.l_name}
-            required
+            type="checkbox"
+            checked={isAdmin}
+            onChange={(event) => setIsAdmin(event.target.checked)}
           />
-          <label className="AdminCheck">
-            <input
-              type="checkbox"
-              checked={isAdmin}
-              onChange={(event) => setIsAdmin(event.target.checked)}
-            />
-            {localization.admin.l_admin}
-          </label>
-          <label className="AdminCheck">
-            <input
-              type="checkbox"
-              checked={isDev}
-              onChange={(event) => setIsDev(event.target.checked)}
-            />
-            {localization.admin.l_dev}
-          </label>
-          <button type="submit" disabled={busy}>
-            {localization.admin.b_submit}
-          </button>
-        </form>
-      )}
-
-      {mode === "status" && (
-        <form className="AdminForm" onSubmit={handleStatus}>
+          {localization.admin.l_admin}
+        </label>
+        <label className="AdminCheck">
           <input
-            type="text"
-            value={statusUuid}
-            onChange={(event) => setStatusUuid(event.target.value)}
-            placeholder={localization.admin.l_uuid}
-            required
+            type="checkbox"
+            checked={isDev}
+            onChange={(event) => setIsDev(event.target.checked)}
           />
-          <select
-            value={statusAction}
-            onChange={(event) => setStatusAction(event.target.value as StatusAction)}
-          >
-            <option value="enable">{localization.admin.l_enabled}</option>
-            <option value="disable">{localization.admin.l_disabled}</option>
-          </select>
-          <button type="submit" disabled={busy}>
-            {localization.admin.b_submit}
-          </button>
-        </form>
-      )}
-
-      {mode === "reset" && (
-        <form className="AdminForm" onSubmit={handleReset}>
-          <input
-            type="text"
-            value={resetUuid}
-            onChange={(event) => setResetUuid(event.target.value)}
-            placeholder={localization.admin.l_uuid}
-            required
-          />
-          <button type="submit" disabled={busy}>
-            {localization.admin.b_submit}
-          </button>
-        </form>
-      )}
+          {localization.admin.l_dev}
+        </label>
+        <button className="FunctionButton" type="submit" disabled={busy}>
+          {localization.admin.b_submit}
+        </button>
+      </form>
 
       {result && (
         <div className={`AdminResult ${result.success ? "Success" : "Failure"}`}>
@@ -304,7 +226,30 @@ export function Admin() {
                     : localization.admin.l_never}
                 </td>
                 <td>
-                  <CopyButton value={user.uuid} label={localization.admin.b_copy_uuid} />
+                  <div className="AdminActions">
+                    <button
+                    className="FunctionButton"
+                      type="button"
+                      disabled={busyUuid === user.uuid}
+                      onClick={() => {
+                        void toggleEnabled(user);
+                      }}
+                    >
+                      {user.enabled
+                        ? localization.admin.b_disable
+                        : localization.admin.b_enable}
+                    </button>
+                    <button
+                    className="FunctionButton"
+                      type="button"
+                      disabled={busyUuid === user.uuid}
+                      onClick={() => {
+                        void resetUserPassword(user);
+                      }}
+                    >
+                      {localization.admin.b_reset_password}
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}

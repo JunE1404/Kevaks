@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
+import { CameraSettings } from "../components/CameraSettings";
 import { VideoTrackView } from "../components/LiveKitMedia";
 import { useAuth } from "../contexts/authContext";
 import { useLanguage } from "../contexts/languageContext";
@@ -63,56 +64,7 @@ export function TriviaLobby() {
               )}
             </div>
 
-            <div className="LobbyCameraSettings">
-              <label className="LobbyDevice">
-                <span>{localization.lobby.l_camera}</span>
-                <select
-                  value={liveKit.cameraId}
-                  onChange={(event) => {
-                    void liveKit.selectCamera(event.target.value);
-                  }}
-                  disabled={liveKit.cameraDevices.length === 0}
-                >
-                  {liveKit.cameraDevices.map((device) => (
-                    <option key={device.deviceId} value={device.deviceId}>
-                      {device.label || device.deviceId}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="LobbyDevice">
-                <span>{localization.lobby.l_microphone}</span>
-                <select
-                  value={liveKit.microphoneId}
-                  onChange={(event) => {
-                    void liveKit.selectMicrophone(event.target.value);
-                  }}
-                  disabled={liveKit.microphoneDevices.length === 0}
-                >
-                  {liveKit.microphoneDevices.map((device) => (
-                    <option key={device.deviceId} value={device.deviceId}>
-                      {device.label || device.deviceId}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              {!liveKit.localCameraTrack && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    void liveKit.setupLocalTracks();
-                  }}
-                >
-                  {localization.lobby.b_setup_media}
-                </button>
-              )}
-
-              {liveKit.error && (
-                <p className="FormError">{liveKit.error}</p>
-              )}
-            </div>
+            <CameraSettings />
           </div>
 
           <h2>{localization.lobby.l_players}</h2>
@@ -134,7 +86,7 @@ export function TriviaLobby() {
           )}
 
           {isOwner && (
-            <button type="button" onClick={startGame}>
+            <button className="FunctionButton" type="button" onClick={startGame}>
               {localization.lobby.b_start}
             </button>
           )}

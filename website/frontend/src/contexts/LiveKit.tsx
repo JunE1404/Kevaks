@@ -1,32 +1,78 @@
 import { useEffect, useRef, useState } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation, useSearchParams } from "react-router-dom";
 import {
   ConnectionState,
   createLocalTracks,
   Room,
   RoomEvent,
   Track,
+  VideoPreset,
   VideoPresets,
   type LocalTrack,
   type Participant,
 } from "livekit-client";
 import { getTriviaJoinToken, registerTriviaIdentity } from "../requests/trivia";
+import {
+  getStoredMediaDevices,
+  setStoredCameraId,
+  setStoredMicrophoneId,
+} from "../utils/deviceStorage";
+import { useAuth } from "./authContext";
 import { LiveKitContext } from "./livekitContext";
 import { useTriviaSocket } from "./triviaSocketContext";
 
+const VIDEO_FRAME_RATE = 60;
+const VIDEO_BITRATE = 3_500_000;
+const VIDEO_RESOLUTION = {
+  ...VideoPresets.h720.resolution,
+  frameRate: VIDEO_FRAME_RATE,
+};
+const VIDEO_SIMULCAST_LAYERS = [
+  new VideoPreset(320, 180, 200_000, VIDEO_FRAME_RATE),
+  new VideoPreset(640, 360, 800_000, VIDEO_FRAME_RATE),
+];
+
 export function LiveKitProvider() {
   const { gameState } = useTriviaSocket();
+  const { userData } = useAuth();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const isAdminPath = location.pathname.endsWith("/admin");
 
   const [room] = useState(
-    () => new Room({ adaptiveStream: true, dynacast: true }),
+    () =>
+      new Room({
+        adaptiveStream: true,
+        dynacast: true,
+        videoCaptureDefaults: { resolution: VIDEO_RESOLUTION },
+        publishDefaults: {
+          videoEncoding: {
+            maxBitrate: VIDEO_BITRATE,
+            maxFramerate: VIDEO_FRAME_RATE,
+          },
+          videoSimulcastLayers: VIDEO_SIMULCAST_LAYERS,
+        },
+      }),
   );
   const [connected, setConnected] = useState(false);
   const [identity, setIdentity] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [cameraDevices, setCameraDevices] = useState<MediaDeviceInfo[]>([]);
   const [microphoneDevices, setMicrophoneDevices] = useState<MediaDeviceInfo[]>([]);
-  const [cameraId, setCameraId] = useState("");
-  const [microphoneId, setMicrophoneId] = useState("");
+  const [cameraId, setCameraId] = useState(() => {
+    const fromUrl = searchParams.get("cameraId");
+    if (fromUrl) {
+      return fromUrl;
+    }
+    return getStoredMediaDevices().cameraId ?? "";
+  });
+  const [microphoneId, setMicrophoneId] = useState(() => {
+    const fromUrl = searchParams.get("microphoneId");
+    if (fromUrl) {
+      return fromUrl;
+    }
+    return getStoredMediaDevices().microphoneId ?? "";
+  });
   const [cameraEnabled, setCameraEnabled] = useState(false);
   const [microphoneEnabled, setMicrophoneEnabled] = useState(false);
   const [localCameraTrack, setLocalCameraTrack] = useState<LocalTrack | null>(null);
@@ -41,6 +87,7 @@ export function LiveKitProvider() {
   const preparePromiseRef = useRef<Promise<void> | null>(null);
   const connectingRef = useRef(false);
   const mountedRef = useRef(true);
+  const isAdminPathRef = useRef(isAdminPath);
 
   function prepare(): Promise<void> {
     if (!preparePromiseRef.current) {
@@ -77,16 +124,30 @@ export function LiveKitProvider() {
         setCameraDevices(cameras);
         setMicrophoneDevices(microphones);
 
-        const camera = cameraId || cameras[0]?.deviceId || "";
-        const microphone = microphoneId || microphones[0]?.deviceId || "";
-        if (camera) setCameraId(camera);
-        if (microphone) setMicrophoneId(microphone);
+        const camera = cameras.some(
+          (device) => device.deviceId === cameraId,
+        )
+          ? cameraId
+          : cameras[0]?.deviceId || "";
+        const microphone = microphones.some(
+          (device) => device.deviceId === microphoneId,
+        )
+          ? microphoneId
+          : microphones[0]?.deviceId || "";
+        if (camera) {
+          setCameraId(camera);
+          setStoredCameraId(camera);
+        }
+        if (microphone) {
+          setMicrophoneId(microphone);
+          setStoredMicrophoneId(microphone);
+        }
 
         const tracks = await createLocalTracks({
           audio: microphone ? { deviceId: microphone } : true,
           video: camera
-            ? { deviceId: camera, resolution: VideoPresets.h720.resolution }
-            : true,
+            ? { deviceId: camera, resolution: VIDEO_RESOLUTION }
+            : { resolution: VIDEO_RESOLUTION },
         });
 
         const cameraTrack =
@@ -122,6 +183,7 @@ export function LiveKitProvider() {
     const target = deviceId || cameraId;
     if (target) {
       setCameraId(target);
+      setStoredCameraId(target);
     }
     try {
       if (room.state === ConnectionState.Connected) {
@@ -138,8 +200,8 @@ export function LiveKitProvider() {
 
       const tracks = await createLocalTracks({
         video: target
-          ? { deviceId: target, resolution: VideoPresets.h720.resolution }
-          : true,
+          ? { deviceId: target, resolution: VIDEO_RESOLUTION }
+          : { resolution: VIDEO_RESOLUTION },
       });
       const cameraTrack =
         tracks.find((track) => track.kind === Track.Kind.Video) ?? null;
@@ -160,6 +222,7 @@ export function LiveKitProvider() {
     const target = deviceId || microphoneId;
     if (target) {
       setMicrophoneId(target);
+      setStoredMicrophoneId(target);
     }
     try {
       if (room.state === ConnectionState.Connected) {
@@ -196,21 +259,28 @@ export function LiveKitProvider() {
   }
 
   async function connect() {
-    if (connectingRef.current || room.state === ConnectionState.Connected) {
+    if (
+      isAdminPathRef.current ||
+      connectingRef.current ||
+      room.state === ConnectionState.Connected
+    ) {
       return;
     }
     connectingRef.current = true;
     try {
       await prepare();
-      if (!urlRef.current || !tokenRef.current) {
+      if (isAdminPathRef.current || !urlRef.current || !tokenRef.current) {
         return;
       }
       if (!cameraTrackRef.current && !microphoneTrackRef.current) {
         await setupLocalTracks();
       }
+      if (isAdminPathRef.current) {
+        return;
+      }
 
       await room.connect(urlRef.current, tokenRef.current);
-      if (!mountedRef.current) {
+      if (isAdminPathRef.current || !mountedRef.current) {
         room.disconnect();
         return;
       }
@@ -336,6 +406,20 @@ export function LiveKitProvider() {
     };
   }, [room]);
 
+  useEffect(() => {
+    isAdminPathRef.current = isAdminPath;
+  }, [isAdminPath]);
+
+  useEffect(() => {
+    if (!isAdminPath) {
+      return;
+    }
+    cameraTrackRef.current?.stop();
+    microphoneTrackRef.current?.stop();
+    cameraTrackRef.current = null;
+    microphoneTrackRef.current = null;
+  }, [isAdminPath]);
+
   const hasGameState = gameState !== null;
   const prepareRef = useRef(prepare);
   const connectRef = useRef(connect);
@@ -346,19 +430,23 @@ export function LiveKitProvider() {
   });
 
   useEffect(() => {
-    if (!hasGameState) {
+    if (!hasGameState || isAdminPath) {
       return;
     }
     void prepareRef.current();
-  }, [hasGameState]);
+  }, [hasGameState, isAdminPath]);
 
   const lobbyState = gameState?.lobbyState ?? 0;
+  const isOwner = gameState?.admin === userData.uuid;
   useEffect(() => {
-    if (lobbyState === 0) {
+    if (lobbyState === 0 || isAdminPath) {
+      return;
+    }
+    if (isOwner && location.pathname.endsWith("/lobby")) {
       return;
     }
     void connectRef.current();
-  }, [lobbyState, room]);
+  }, [lobbyState, room, isAdminPath, isOwner, location.pathname]);
 
   const roomIdentities =
     room.state === ConnectionState.Connected

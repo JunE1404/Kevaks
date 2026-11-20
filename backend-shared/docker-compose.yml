@@ -31,5 +31,15 @@ services:
       - ./database/migrations:/flyway/sql
     command: -locations=filesystem:/flyway/sql migrate
 
+  livekit:
+    image: livekit/livekit-server:latest
+    container_name: kevaks-livekit
+    restart: unless-stopped
+    command: --dev --bind 0.0.0.0
+    ports:
+      - "7880:7880"
+      - "7881:7881"
+      - "7882:7882/udp"
+
 volumes:
   db_data:

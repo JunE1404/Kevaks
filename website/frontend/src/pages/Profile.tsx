@@ -60,30 +60,30 @@ export function Profile() {
     <div className="PageContainer ProfilePage">
       <h1>{localization.profile.l_title}</h1>
 
-      <form className="ProfileLine" onSubmit={handleSubmit}>
+      <form className="UsernameBlock" onSubmit={handleSubmit}>
         <span className="ProfileLabel">{localization.profile.l_name}</span>
         {editing ? (
-          <>
+          <div className="UsernameRow">
             <input
               type="text"
               value={name}
               onChange={(event) => setName(event.target.value)}
               autoFocus
             />
-            <button type="button" onClick={cancel}>
+            <button className="FunctionButton" type="button" onClick={cancel}>
               {localization.profile.b_cancel}
             </button>
-            <button type="submit" disabled={busy}>
+            <button className="FunctionButton" type="submit" disabled={busy}>
               {localization.profile.b_submit}
             </button>
-          </>
+          </div>
         ) : (
-          <>
+          <div className="UsernameRow">
             <span className="ProfileName">{userData.name}</span>
-            <button type="button" onClick={startEdit}>
+            <button className="FunctionButton" type="button" onClick={startEdit}>
               {localization.profile.b_edit}
             </button>
-          </>
+          </div>
         )}
       </form>
 
@@ -91,11 +91,11 @@ export function Profile() {
 
       <div className="ProfileActions">
         {userData.admin && (
-          <button type="button" onClick={() => navigate("/admin")}>
+          <button className="FunctionButton" type="button" onClick={() => navigate("/admin")}>
             {localization.admin.l_title}
           </button>
         )}
-        <button type="button" onClick={() => logout()}>
+        <button className="FunctionButton alert" type="button" onClick={() => logout()}>
           {localization.home.b_logout}
         </button>
       </div>

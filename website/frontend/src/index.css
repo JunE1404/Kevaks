@@ -2,9 +2,9 @@
   --text: #fcf8fc;
   --text-second: #dfd9e3;
   --bg: #3a304b;
-  --bg-second: #6c5b88;
-  --accent: #c38efa;
-  --header-height: 4.25rem;
+  --bg-second: #ebe3f922;
+  --accent: #f7f0ff;
+  --header-height: 3.5rem;
   --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
   --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
@@ -13,7 +13,19 @@
   letter-spacing: 0.18px;
   color-scheme: light dark;
   color: var(--text);
-  background: var(--bg);
+    background-image: linear-gradient(
+    140deg,
+    hsl(260deg 100% 1%) 0%,
+    hsl(261deg 100% 6%) 13%,
+    hsl(262deg 100% 12%) 31%,
+    hsl(262deg 100% 17%) 50%,
+    hsl(263deg 100% 23%) 67%,
+    hsl(264deg 100% 28%) 79%,
+    hsl(265deg 100% 34%) 87%,
+    hsl(265deg 100% 39%) 93%,
+    hsl(266deg 100% 45%) 97%,
+    hsl(267deg 100% 50%) 100%
+  );
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;

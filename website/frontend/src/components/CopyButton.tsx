@@ -31,7 +31,7 @@ export function CopyButton({ value, label }: CopyButtonProps) {
   }
 
   return (
-    <button type="button" onClick={copy}>
+    <button className="FunctionButton" type="button" onClick={copy}>
       {copied ? localization.admin.b_copied : (label ?? localization.admin.b_copy)}
     </button>
   );

@@ -423,6 +423,16 @@ func (h *Hub) handleMessage(client *Client, data []byte) {
 		}
 		h.Broadcast(Event{Event: "b_update"})
 
+	case "admin_finish_game":
+		if !h.requireOwner(client, "admin_finish_game") {
+			return
+		}
+		if err := h.Game.Finish(client.UID); err != nil {
+			_ = client.Send(createErrorEvent("admin_finish_game", err.Error(), client.UID))
+			return
+		}
+		h.Broadcast(Event{Event: "b_update"})
+
 	default:
 		// TODO: handle lobby/game events here.
 	}

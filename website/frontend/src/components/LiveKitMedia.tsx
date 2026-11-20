@@ -34,7 +34,7 @@ export function VideoTrackView({
   );
 }
 
-export function AudioTrackView({ track }: { track: Track }) {
+export function AudioTrackView({ track, volume }: { track: Track, volume: number }) {
   const ref = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
@@ -47,6 +47,14 @@ export function AudioTrackView({ track }: { track: Track }) {
       track.detach(element);
     };
   }, [track]);
+
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) {
+      return;
+    }
+    element.volume = volume;
+  }, [volume]);
 
   return <audio ref={ref} className="RemoteAudio" autoPlay />;
 }

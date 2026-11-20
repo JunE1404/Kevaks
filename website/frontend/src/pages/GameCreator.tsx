@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../contexts/languageContext";
 import { newGameConfig } from "../misc/trivia";
 import {
   deleteTriviaGame,
   listTriviaGames,
   saveTriviaGame,
-  startTriviaGame,
   type TriviaGameInfo,
 } from "../requests/trivia";
 
@@ -39,7 +38,6 @@ export function GameCreator() {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
-  const [starting, setStarting] = useState<string | null>(null);
   const [error, setError] = useState(false);
 
   useEffect(() => {
@@ -95,34 +93,14 @@ export function GameCreator() {
     }
   }
 
-  async function openLobby(uuid: string) {
-    setStarting(uuid);
-    setError(false);
-
-    try {
-      const created = await startTriviaGame(uuid);
-      if (!created) {
-        setError(true);
-        return;
-      }
-      navigate("/game/trivia/lobby");
-    } catch {
-      setError(true);
-    } finally {
-      setStarting(null);
-    }
-  }
-
   return (
     <div className="PageContainer GameCreatorPage">
       <div className="EditorHeader">
         <h1>{localization.creator.l_title}</h1>
-        <button type="button" onClick={createGame} disabled={creating}>
+        <button className="FunctionButton" type="button" onClick={createGame} disabled={creating}>
           {localization.creator.b_create}
         </button>
       </div>
-
-      <Link to="/games">{localization.creator.b_back}</Link>
 
       {error && <p className="FormError">{localization.errors.generic}</p>}
 
@@ -139,8 +117,8 @@ export function GameCreator() {
                 className="GameCardOpen"
                 onClick={() => navigate(`/games/trivia/create/${game.uuid}`)}
               >
-                <span className="GameCardTitle">{game.title}</span>
-                <span className="GameCardStatus">
+                <div className="GameCardTitle">{game.title}</div>
+                <span className={"GameCardStatus "+ (game.done ? "complete" : "inprogress")}>
                   {game.done
                     ? localization.creator.l_done
                     : localization.creator.l_in_progress}
@@ -149,17 +127,6 @@ export function GameCreator() {
                   {new Date(game.lastUpdate).toLocaleString()}
                 </span>
               </button>
-
-              {game.done && (
-                <button
-                  type="button"
-                  className="GameCardLobby"
-                  onClick={() => void openLobby(game.uuid)}
-                  disabled={starting === game.uuid}
-                >
-                  {localization.creator.b_open_lobby}
-                </button>
-              )}
 
               <button
                 type="button"

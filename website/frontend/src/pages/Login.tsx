@@ -50,7 +50,7 @@ export function Login() {
 
         {failed && <p className="FormError">{localization.login.e_login_failed}</p>}
 
-        <button type="submit" disabled={loading}>
+        <button className="FunctionButton" type="submit" disabled={loading}>
           {localization.login.b_login}
         </button>
       </form>

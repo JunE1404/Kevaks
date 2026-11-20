@@ -32,13 +32,13 @@ export interface Localization {
     l_done: string;
     l_in_progress: string;
     b_delete: string;
-    b_open_lobby: string;
   };
   editor: {
     l_title: string;
     l_game_title: string;
     b_back: string;
     b_save: string;
+    b_open_lobby: string;
     l_saving: string;
     l_saved: string;
     l_dirty: string;
@@ -46,6 +46,8 @@ export interface Localization {
     b_add_board: string;
     b_add_row: string;
     b_add_column: string;
+    b_delete_row: string;
+    b_delete_category: string;
     l_points: string;
     l_empty_field: string;
     l_field_special: string;
@@ -72,12 +74,21 @@ export interface Localization {
     b_buzz: string;
     b_next_round: string;
     b_next_board: string;
+    b_finish_game: string;
     b_open_stream: string;
     l_free_for_all: string;
     l_phase: string;
+    l_phase_waiting: string;
+    l_phase_choice: string;
+    l_phase_buzz: string;
+    l_phase_answer: string;
+    l_phase_finished: string;
+    l_phase_scored: string;
     l_camera: string;
     l_microphone: string;
+    l_volume: string;
     l_camera_off: string;
+    l_camera_settings: string;
     b_setup_media: string;
     b_mute: string;
     b_unmute: string;
@@ -86,7 +97,6 @@ export interface Localization {
   };
   admin: {
     l_title: string;
-    b_home: string;
     l_loading: string;
     l_col_name: string;
     l_col_role: string;
@@ -99,14 +109,14 @@ export interface Localization {
     l_no: string;
     l_never: string;
     l_col_actions: string;
-    l_mode_add: string;
-    l_mode_status: string;
-    l_mode_reset: string;
+    l_create_account: string;
     l_name: string;
     l_admin: string;
     l_dev: string;
-    l_uuid: string;
     b_submit: string;
+    b_enable: string;
+    b_disable: string;
+    b_reset_password: string;
     l_success_add: string;
     l_success_enable: string;
     l_success_disable: string;
@@ -115,12 +125,15 @@ export interface Localization {
     l_tmp_password: string;
     b_copy: string;
     b_copied: string;
-    b_copy_uuid: string;
     l_hide_disabled: string;
   };
   landing: {
     l_title: string;
     l_subtitle: string;
+    l_handle_tiktok: string;
+    l_handle_twitch: string;
+    l_handle_youtube: string;
+    l_handle_instagram: string;
     b_login: string;
   };
   errors: {
@@ -149,6 +162,15 @@ export interface Localization {
     b_edit: string;
     b_cancel: string;
     b_submit: string;
+  };
+  footer: {
+    l_credit: string;
+    l_contact: string;
+  };
+  imprint: {
+    l_title: string;
+    b_imprint: string;
+    l_placeholder: string;
   };
 }
 
