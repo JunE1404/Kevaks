@@ -16,12 +16,8 @@ func InitAPI(dbHandler *database.DBHandler) {
 	app.Use(cors.New(cors.Config{
 		// The browser sends the frontend's own origin, so the site serving the
 		// built frontend has to be listed too, not just the API origin.
-		AllowOrigins: []string{
-			"http://localhost:5173",
-			"https://kevaks.com",
-			"https://www.kevaks.com",
-			"https://api.kevaks.com",
-		},
+		// Shared with the trivia WebSocket origin check.
+		AllowOrigins:     h.AllowedOrigins,
 		AllowCredentials: true,
 		AllowHeaders:     []string{"Content-Type"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},

@@ -162,7 +162,7 @@
   justify-content: center;
   gap: 0.75rem;
   padding: 0.65rem 1rem;
-  background: var(--bg-second);
+  background: #ffffff19;
   color: var(--text);
 }
 
@@ -231,12 +231,13 @@ select:focus-visible {
   flex-direction: column;
   gap: 0.75rem;
   box-sizing: border-box;
-  width: min(20rem, 100%);
+  width: min(25rem, 100%);
   padding: 2rem;
 }
 
 .LoginForm h1 {
   margin: 0 0 0.5rem;
+  line-height: 2rem;
 }
 
 .FormError {

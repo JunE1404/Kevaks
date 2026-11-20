@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 
 	"net/url"
+	"slices"
 	"strings"
 
 	helpers "github.com/kevaks/backend-shared/api/misc"
@@ -151,12 +152,12 @@ var wsUpgrader = websocket.FastHTTPUpgrader{
 			return false
 		}
 
+		// Same origin: the API is served from the host the client connected to.
 		if strings.EqualFold(parsed.Host, string(ctx.Host())) {
 			return true
 		}
 
-		// Vite dev server.
-		return parsed.Host == "localhost:5173" || parsed.Host == "127.0.0.1:5173"
+		return slices.Contains(AllowedOrigins, parsed.Scheme+"://"+parsed.Host)
 	},
 }
 

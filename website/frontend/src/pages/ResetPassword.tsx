@@ -70,7 +70,7 @@ export function ResetPassword() {
         {message && <p className="FormError">{message}</p>}
         {failed && <p className="FormError">{localization.errors.generic}</p>}
 
-        <button type="submit" disabled={!canSubmit}>
+        <button className="FunctionButton" type="submit" disabled={!canSubmit}>
           {localization.password.b_submit}
         </button>
       </form>
