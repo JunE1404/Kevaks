@@ -3,6 +3,7 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "./authContext";
 import { useLanguage } from "./languageContext";
 import { TriviaSocketContext } from "./triviaSocketContext";
+import { API_BASE } from "../requests/apiBase";
 import type {
   TriviaCardIndex,
   TriviaGame,
@@ -11,8 +12,17 @@ import type {
 } from "../requests/trivia";
 
 function socketUrl(): string {
+  // Absolute API origin (production): the socket lives on that host, without
+  // the /api prefix because the backend routes are unprefixed.
+  if (API_BASE.startsWith("http")) {
+    const url = new URL(API_BASE);
+    const protocol = url.protocol === "https:" ? "wss:" : "ws:";
+    return `${protocol}//${url.host}/games/trivia/ws`;
+  }
+
+  // Relative base (dev): same-origin, proxied to the backend by Vite.
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-  return `${protocol}//${window.location.host}/api/games/trivia/ws`;
+  return `${protocol}//${window.location.host}${API_BASE}/games/trivia/ws`;
 }
 
 const LOBBY_PATH = "/game/trivia/lobby";

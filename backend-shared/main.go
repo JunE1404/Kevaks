@@ -30,6 +30,7 @@ func main() {
 
 	if _, err := lk.InitServer(
 		env("LIVEKIT_URL", "http://localhost:7880"),
+		os.Getenv("LIVEKIT_CLIENT_URL"),
 		env("LIVEKIT_API_KEY", "devkey"),
 		env("LIVEKIT_API_SECRET", "secret"),
 	); err != nil {
