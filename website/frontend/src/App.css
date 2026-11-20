@@ -569,14 +569,26 @@ code {
   width: min(24rem, 70%);
 }
 
-.CameraTile.current {
-  outline: 3px solid #fff;
-  outline-offset: -3px;
+/* Current/buzzed ring. `outline` can't be used here: it paints with the
+   element's own background, i.e. *below* the absolutely positioned
+   .CameraVideo (inset: 0) which would cover an inset outline. A positioned
+   pseudo-element with z-index 1 sits above the video and below the controls. */
+.CameraTile::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  box-sizing: border-box;
+  border: 3px solid transparent;
+  pointer-events: none;
 }
 
-.CameraTile.buzzed {
-  outline: 3px solid #3b82f6;
-  outline-offset: -3px;
+.CameraTile.current::after {
+  border-color: #fff;
+}
+
+.CameraTile.buzzed::after {
+  border-color: #3b82f6;
 }
 
 .CameraVideo {
@@ -595,59 +607,15 @@ code {
   display: none;
 }
 
-.CameraControls {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  z-index: 2;
+.MediaControls {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 5;
   display: flex;
-  gap: 0.35rem;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s ease;
-}
-
-.CameraControls button {
-  padding: 0.3rem 0.55rem;
-  font-size: 0.75rem;
-  color: #fff;
+  gap: 0.5rem;
+  padding: 0.5rem;
   background: rgb(0 0 0 / 60%);
-  border: 1px transparent solid;
-}
-.CameraControls button:hover {
-  cursor: pointer;
-  border: 1px var(--text) solid;
-}
-
-.CameraSettingsButton {
-  position: absolute;
-  top: 0.5rem;
-  left: 0.5rem;
-  z-index: 2;
-  width: 1.9rem;
-  height: 1.9rem;
-  padding: 0;
-  font-size: 1rem;
-  line-height: 1;
-  color: #fff;
-  background: rgb(0 0 0 / 60%);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s ease;
-  border: 1px transparent;
-}
-
-.CameraSettingsButton:hover{
-  cursor: pointer;
-  border: 1px var(--text) solid;
-}
-
-.CameraTile.self:hover .CameraControls,
-.CameraTile.self:hover .CameraSettingsButton,
-.CameraTile.self:focus-within .CameraControls,
-.CameraTile.self:focus-within .CameraSettingsButton {
-  opacity: 1;
-  pointer-events: auto;
 }
 
 .CameraName {
@@ -655,18 +623,22 @@ code {
   bottom: 0.5rem;
   left: 0.5rem;
   max-width: 60%;
+  padding: 0.15rem 0.45rem;
   overflow: hidden;
   font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
+  background: rgb(0 0 0 / 60%);
 }
 
 .CameraPoints {
   position: absolute;
   right: 0.5rem;
   bottom: 0.5rem;
+  padding: 0.15rem 0.45rem;
   color: var(--accent);
   font-weight: 600;
+  background: rgb(0 0 0 / 60%);
 }
 
 .CameraTile.self .CameraPoints {
@@ -1367,7 +1339,9 @@ textarea:focus-visible {
 }
 
 .CameraTile:hover .VolumeControl,
-.CameraTile:focus-within .VolumeControl {
+.CameraTile:focus-within .VolumeControl,
+.EndCamera:hover .VolumeControl,
+.EndCamera:focus-within .VolumeControl {
   opacity: 1;
   pointer-events: auto;
 }

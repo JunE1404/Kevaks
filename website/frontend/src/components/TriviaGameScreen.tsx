@@ -1,10 +1,11 @@
-import { Fragment, useId, useState } from "react";
-import { CameraSettings } from "./CameraSettings";
+import { Fragment, useId } from "react";
+import { MediaControls } from "./MediaControls";
 import { AudioTrackView, VideoTrackView } from "./LiveKitMedia";
 import { useAuth } from "../contexts/authContext";
 import { useLanguage } from "../contexts/languageContext";
 import { useLiveKit } from "../contexts/livekitContext";
 import { useTriviaSocket } from "../contexts/triviaSocketContext";
+import { usePlayerVolume } from "../utils/playerVolume";
 import type { TriviaLobbyPlayer, TriviaLobbyState } from "../requests/trivia";
 
 function CameraTile({
@@ -21,17 +22,9 @@ function CameraTile({
   isSelf?: boolean;
 }) {
   const { localization } = useLanguage();
-  const {
-    roomIdentities,
-    videoTrackFor,
-    audioTrackFor,
-    cameraEnabled,
-    microphoneEnabled,
-    toggleCamera,
-    toggleMicrophone,
-  } = useLiveKit();
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [volume, setVolume] = useState(1.0);
+  const { roomIdentities, videoTrackFor, audioTrackFor, cameraEnabled } =
+    useLiveKit();
+  const [volume, setVolume] = usePlayerVolume(player.uuid);
   const volumeId = useId();
 
   const inRoom =
@@ -79,61 +72,6 @@ function CameraTile({
 
       <span className="CameraName">{player.name}</span>
       {!host && <span className="CameraPoints">{player.points}</span>}
-
-      {isSelf && (
-        <button
-          type="button"
-          className="CameraSettingsButton"
-          onClick={() => setSettingsOpen(true)}
-          aria-label={localization.lobby.l_camera_settings}
-          title={localization.lobby.l_camera_settings}
-        >
-          ⚙
-        </button>
-      )}
-
-      {isSelf && (
-        <div className="CameraControls">
-          <button
-            type="button"
-            onClick={() => {
-              void toggleMicrophone();
-            }}
-          >
-            {microphoneEnabled
-              ? localization.lobby.b_mute
-              : localization.lobby.b_unmute}
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              void toggleCamera();
-            }}
-          >
-            {cameraEnabled
-              ? localization.lobby.b_camera_off
-              : localization.lobby.b_camera_on}
-          </button>
-        </div>
-      )}
-
-      {isSelf && settingsOpen && (
-        <div
-          className="ModalOverlay"
-          onClick={() => setSettingsOpen(false)}
-        >
-          <div
-            className="Modal"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <h2>{localization.lobby.l_camera_settings}</h2>
-            <CameraSettings />
-            <button className="FunctionButton" type="button" onClick={() => setSettingsOpen(false)}>
-              {localization.editor.b_close}
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -176,6 +114,8 @@ export function TriviaGameScreen({ state }: { state: TriviaLobbyState }) {
         void room?.startAudio();
       }}
     >
+      <MediaControls />
+
       <div className="GameLayout">
         <div className="CameraColumn left">
           {leftPlayers.map((player, index) => (

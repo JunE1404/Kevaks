@@ -4,14 +4,18 @@ import { useLanguage } from "../contexts/languageContext";
 import { useLiveKit } from "../contexts/livekitContext";
 import { getStoredMediaDevices } from "../utils/deviceStorage";
 
-export function CameraSettings() {
+export function CameraSettings({
+  restoreStoredDevices = true,
+}: {
+  restoreStoredDevices?: boolean;
+}) {
   const { localization } = useLanguage();
   const liveKit = useLiveKit();
   const [searchParams] = useSearchParams();
   const loadedRef = useRef(false);
 
   useEffect(() => {
-    if (loadedRef.current) {
+    if (loadedRef.current || !restoreStoredDevices) {
       return;
     }
     loadedRef.current = true;
@@ -27,7 +31,7 @@ export function CameraSettings() {
     if (stored.microphoneId && stored.microphoneId !== liveKit.microphoneId) {
       void liveKit.selectMicrophone(stored.microphoneId);
     }
-  }, [liveKit, searchParams]);
+  }, [liveKit, searchParams, restoreStoredDevices]);
 
   return (
     <div className="CameraSettings">

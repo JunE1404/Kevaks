@@ -124,24 +124,21 @@ export function LiveKitProvider() {
         setCameraDevices(cameras);
         setMicrophoneDevices(microphones);
 
-        const camera = cameras.some(
-          (device) => device.deviceId === cameraId,
-        )
-          ? cameraId
-          : cameras[0]?.deviceId || "";
-        const microphone = microphones.some(
-          (device) => device.deviceId === microphoneId,
-        )
-          ? microphoneId
-          : microphones[0]?.deviceId || "";
-        if (camera) {
-          setCameraId(camera);
-          setStoredCameraId(camera);
-        }
-        if (microphone) {
-          setMicrophoneId(microphone);
-          setStoredMicrophoneId(microphone);
-        }
+        // Keep whatever device is already in use, then the previously stored
+        // one. If neither exists any more, fall back to the system default
+        // instead of blindly grabbing the first enumerated device.
+        const stored = getStoredMediaDevices();
+        const camera =
+          cameras.find((device) => device.deviceId === cameraId)?.deviceId ??
+          cameras.find((device) => device.deviceId === stored.cameraId)
+            ?.deviceId ??
+          "";
+        const microphone =
+          microphones.find((device) => device.deviceId === microphoneId)
+            ?.deviceId ??
+          microphones.find((device) => device.deviceId === stored.microphoneId)
+            ?.deviceId ??
+          "";
 
         const tracks = await createLocalTracks({
           audio: microphone ? { deviceId: microphone } : true,
@@ -154,6 +151,21 @@ export function LiveKitProvider() {
           tracks.find((track) => track.kind === Track.Kind.Video) ?? null;
         const microphoneTrack =
           tracks.find((track) => track.kind === Track.Kind.Audio) ?? null;
+
+        // Mirror the device the browser actually opened, so the selects and
+        // the stored ids always describe the live track.
+        const activeCamera =
+          cameraTrack?.mediaStreamTrack.getSettings().deviceId ?? camera;
+        const activeMicrophone =
+          microphoneTrack?.mediaStreamTrack.getSettings().deviceId ?? microphone;
+        if (activeCamera) {
+          setCameraId(activeCamera);
+          setStoredCameraId(activeCamera);
+        }
+        if (activeMicrophone) {
+          setMicrophoneId(activeMicrophone);
+          setStoredMicrophoneId(activeMicrophone);
+        }
 
         cameraTrackRef.current?.stop();
         microphoneTrackRef.current?.stop();
