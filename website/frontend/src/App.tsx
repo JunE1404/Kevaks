@@ -20,7 +20,7 @@ function AppShell() {
       {showTempBanner && (
         <div className="TempBanner">
           <span>{localization.password.l_temp_banner}</span>
-          <Link className="LinkButton" to="/reset-password">
+          <Link className="FunctionButton" to="/reset-password">
             {localization.password.b_reset}
           </Link>
         </div>
