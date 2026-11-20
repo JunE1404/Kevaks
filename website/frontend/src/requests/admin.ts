@@ -17,7 +17,7 @@ export interface AccountResult {
   temporary_password: string;
 }
 
-const API_BASE = "/api";
+import { API_BASE } from "./apiBase";
 
 export async function listUsers(): Promise<AdminUser[]> {
   const res = await fetch(`${API_BASE}/admin/accounts`, {

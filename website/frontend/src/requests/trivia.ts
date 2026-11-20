@@ -1,4 +1,4 @@
-const API_BASE = "/api";
+import { API_BASE } from "./apiBase";
 
 // These mirror the Go structs in types/types.go, which have no JSON tags, so
 // the keys are the exported Go field names.

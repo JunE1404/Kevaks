@@ -29,16 +29,28 @@ type LK struct {
 	mu       sync.Mutex
 	key      string
 	secret   string
+	// clientURL is the address handed to browsers. It differs from URL when the
+	// server-side API is reached over an internal network (e.g. a compose
+	// network) while clients connect through a published port.
+	clientURL string
 }
 
 // InitServer configures the process-wide LiveKit API client used to create rooms.
-func InitServer(url, apiKey, apiSecret string) (*LK, error) {
+// clientURL may be empty, in which case it falls back to url.
+func InitServer(url, clientURL, apiKey, apiSecret string) (*LK, error) {
 	api, err := lksdk.NewLiveKitAPI(lksdk.WithURL(url), lksdk.WithAPIKey(apiKey, apiSecret))
 	if err != nil {
 		return nil, err
 	}
 
-	s := &LK{URL: url, Api: api, ctx: context.Background(), key: apiKey, secret: apiSecret}
+	s := &LK{
+		URL:       url,
+		clientURL: clientURL,
+		Api:       api,
+		ctx:       context.Background(),
+		key:       apiKey,
+		secret:    apiSecret,
+	}
 	serverMu.Lock()
 	server = s
 	serverMu.Unlock()
@@ -67,25 +79,31 @@ func NewRoom(roomname string) (*LK, error) {
 	}
 
 	return &LK{
-		URL:      s.URL,
-		Roomname: roomname,
-		Api:      s.Api,
-		Room:     room,
-		ctx:      s.ctx,
-		key:      s.key,
-		secret:   s.secret,
+		URL:       s.URL,
+		clientURL: s.clientURL,
+		Roomname:  roomname,
+		Api:       s.Api,
+		Room:      room,
+		ctx:       s.ctx,
+		key:       s.key,
+		secret:    s.secret,
 	}, nil
 }
 
 // ClientURL returns the room URL in the form used by LiveKit client SDKs.
 func (l *LK) ClientURL() string {
+	target := l.clientURL
+	if target == "" {
+		target = l.URL
+	}
+
 	switch {
-	case strings.HasPrefix(l.URL, "https://"):
-		return "wss://" + strings.TrimPrefix(l.URL, "https://")
-	case strings.HasPrefix(l.URL, "http://"):
-		return "ws://" + strings.TrimPrefix(l.URL, "http://")
+	case strings.HasPrefix(target, "https://"):
+		return "wss://" + strings.TrimPrefix(target, "https://")
+	case strings.HasPrefix(target, "http://"):
+		return "ws://" + strings.TrimPrefix(target, "http://")
 	default:
-		return l.URL
+		return target
 	}
 }
 

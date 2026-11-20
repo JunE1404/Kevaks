@@ -8,7 +8,7 @@ export interface AuthUser {
   temp: boolean;
 }
 
-const API_BASE = "/api";
+import { API_BASE } from "./apiBase";
 
 export async function login(name: string, password: string): Promise<AuthUser | null> {
   const res = await fetch(`${API_BASE}/login`, {

@@ -14,7 +14,14 @@ import (
 func InitAPI(dbHandler *database.DBHandler) {
 	app := fiber.New()
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:5173"},
+		// The browser sends the frontend's own origin, so the site serving the
+		// built frontend has to be listed too, not just the API origin.
+		AllowOrigins: []string{
+			"http://localhost:5173",
+			"https://kevaks.com",
+			"https://www.kevaks.com",
+			"https://api.kevaks.com",
+		},
 		AllowCredentials: true,
 		AllowHeaders:     []string{"Content-Type"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},

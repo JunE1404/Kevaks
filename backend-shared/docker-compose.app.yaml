@@ -1,0 +1,99 @@
+name: kevaks-app
+
+services:
+  # Postgres is attached to an internal network only: it has no published port
+  # and no route to the outside world. The app reaches it over that network.
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-kevaks}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-kevaks}
+      POSTGRES_DB: ${POSTGRES_DB:-kevaks}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # One-shot migration runner on the same internal network.
+  flyway:
+    image: flyway/flyway:13-alpine
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      FLYWAY_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-kevaks}
+      FLYWAY_USER: ${POSTGRES_USER:-kevaks}
+      FLYWAY_PASSWORD: ${POSTGRES_PASSWORD:-kevaks}
+    volumes:
+      - ./database/migrations:/flyway/sql:ro
+    command: -locations=filesystem:/flyway/sql migrate
+    networks:
+      - internal
+
+  livekit:
+    image: livekit/livekit-server:latest
+    restart: unless-stopped
+    # --dev only falls back to the placeholder devkey/secret when no keys are
+    # supplied; LIVEKIT_KEYS takes precedence over it.
+    command: --dev --bind 0.0.0.0 --node-ip=${LIVEKIT_NODE_IP:?set the server public IP} --udp-port=7882
+    environment:
+      # LiveKit expects "key: secret" (comma-separate more than one pair).
+      LIVEKIT_KEYS: "${LIVEKIT_API_KEY:?set LIVEKIT_API_KEY in .env}: ${LIVEKIT_API_SECRET:?set LIVEKIT_API_SECRET in .env}"
+    ports:
+    - "127.0.0.1:7880:7880"   # only nginx may reach signalling
+    - "7881:7881"
+    - "7882:7882/udp"
+    networks:
+      - public
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      flyway:
+        condition: service_completed_successfully
+      livekit:
+        condition: service_started
+    environment:
+      PORT: "8080"
+      DATABASE_URL: postgres://${POSTGRES_USER:-kevaks}:${POSTGRES_PASSWORD:-kevaks}@db:5432/${POSTGRES_DB:-kevaks}?sslmode=disable
+      # Server-side API calls stay on the internal/public compose network.
+      LIVEKIT_URL: http://livekit:7880
+      # Address handed to browsers: must be reachable from the host, so it uses
+      # the public TLS entry point for LiveKit signalling.
+      LIVEKIT_CLIENT_URL: ${LIVEKIT_CLIENT_URL:-wss://lk.kevaks.com}
+      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY:?set LIVEKIT_API_KEY in .env}
+      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET:?set LIVEKIT_API_SECRET in .env}
+    ports:
+      # Loopback only: nginx is the sole public entry point (TLS + /api).
+      - "127.0.0.1:7696:8080"
+    networks:
+      - internal
+      - public
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  db_data:
+
+networks:
+  # No gateway: containers here can only talk to each other.
+  internal:
+    internal: true
+  # The only network with host-published ports / outbound access.
+  public:
